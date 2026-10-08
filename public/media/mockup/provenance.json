@@ -1,0 +1,502 @@
+[
+  {
+    "file": "overview-skincare.png",
+    "source": "design/mockups/overview.png",
+    "bounds": {
+      "left": 297,
+      "top": 530,
+      "width": 253,
+      "height": 102
+    }
+  },
+  {
+    "file": "overview-clinic.png",
+    "source": "design/mockups/overview.png",
+    "bounds": {
+      "left": 572,
+      "top": 530,
+      "width": 250,
+      "height": 102
+    }
+  },
+  {
+    "file": "overview-coffee.png",
+    "source": "design/mockups/overview.png",
+    "bounds": {
+      "left": 841,
+      "top": 530,
+      "width": 247,
+      "height": 102
+    }
+  },
+  {
+    "file": "attention-palm.png",
+    "source": "design/mockups/overview.png",
+    "bounds": {
+      "left": 594,
+      "top": 258,
+      "width": 46,
+      "height": 38
+    }
+  },
+  {
+    "file": "attention-palm-2.png",
+    "source": "design/mockups/overview.png",
+    "bounds": {
+      "left": 648,
+      "top": 258,
+      "width": 43,
+      "height": 38
+    }
+  },
+  {
+    "file": "attention-linen.png",
+    "source": "design/mockups/overview.png",
+    "bounds": {
+      "left": 700,
+      "top": 258,
+      "width": 41,
+      "height": 38
+    }
+  },
+  {
+    "file": "skincare.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 489,
+      "top": 239,
+      "width": 220,
+      "height": 147
+    }
+  },
+  {
+    "file": "coffee.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 735,
+      "top": 240,
+      "width": 211,
+      "height": 146
+    }
+  },
+  {
+    "file": "clinic.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 974,
+      "top": 239,
+      "width": 213,
+      "height": 147
+    }
+  },
+  {
+    "file": "beach.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 489,
+      "top": 509,
+      "width": 220,
+      "height": 146
+    }
+  },
+  {
+    "file": "dental-logo.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 731,
+      "top": 509,
+      "width": 221,
+      "height": 146
+    }
+  },
+  {
+    "file": "morning-routine.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 974,
+      "top": 509,
+      "width": 211,
+      "height": 145
+    }
+  },
+  {
+    "file": "wellness.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 489,
+      "top": 778,
+      "width": 220,
+      "height": 114
+    }
+  },
+  {
+    "file": "brunch.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 731,
+      "top": 778,
+      "width": 222,
+      "height": 114
+    }
+  },
+  {
+    "file": "coast.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 974,
+      "top": 778,
+      "width": 213,
+      "height": 114
+    }
+  },
+  {
+    "file": "coffee-detail.png",
+    "source": "design/mockups/asset-library.png",
+    "bounds": {
+      "left": 1228,
+      "top": 177,
+      "width": 276,
+      "height": 186
+    }
+  },
+  {
+    "file": "approval-coffee.png",
+    "source": "design/mockups/approvals.png",
+    "bounds": {
+      "left": 664,
+      "top": 277,
+      "width": 288,
+      "height": 540
+    }
+  },
+  {
+    "file": "approval-patient.png",
+    "source": "design/mockups/approvals.png",
+    "bounds": {
+      "left": 289,
+      "top": 328,
+      "width": 82,
+      "height": 87
+    }
+  },
+  {
+    "file": "approval-yoga.png",
+    "source": "design/mockups/approvals.png",
+    "bounds": {
+      "left": 289,
+      "top": 459,
+      "width": 82,
+      "height": 87
+    }
+  },
+  {
+    "file": "approval-coast.png",
+    "source": "design/mockups/approvals.png",
+    "bounds": {
+      "left": 289,
+      "top": 590,
+      "width": 82,
+      "height": 87
+    }
+  },
+  {
+    "file": "approval-tools.png",
+    "source": "design/mockups/approvals.png",
+    "bounds": {
+      "left": 289,
+      "top": 723,
+      "width": 82,
+      "height": 87
+    }
+  },
+  {
+    "file": "approval-smoothie.png",
+    "source": "design/mockups/approvals.png",
+    "bounds": {
+      "left": 289,
+      "top": 853,
+      "width": 82,
+      "height": 87
+    }
+  },
+  {
+    "file": "jamie-avatar.png",
+    "source": "design/mockups/approvals.png",
+    "bounds": {
+      "left": 985,
+      "top": 588,
+      "width": 33,
+      "height": 33
+    }
+  },
+  {
+    "file": "reviewer-avatar.png",
+    "source": "design/mockups/approvals.png",
+    "bounds": {
+      "left": 985,
+      "top": 670,
+      "width": 33,
+      "height": 33
+    }
+  },
+  {
+    "file": "calendar-skincare.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 834,
+      "top": 425,
+      "width": 44,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-team.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 978,
+      "top": 425,
+      "width": 45,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-coffee.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 1118,
+      "top": 425,
+      "width": 44,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-palm.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 280,
+      "top": 578,
+      "width": 44,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-wellness.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 558,
+      "top": 578,
+      "width": 44,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-smile.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 835,
+      "top": 578,
+      "width": 44,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-product.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 419,
+      "top": 732,
+      "width": 43,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-brush.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 697,
+      "top": 732,
+      "width": 44,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-latte.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 978,
+      "top": 732,
+      "width": 43,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-coast.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 419,
+      "top": 887,
+      "width": 43,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-selfcare.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 697,
+      "top": 887,
+      "width": 44,
+      "height": 44
+    }
+  },
+  {
+    "file": "calendar-patient.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 978,
+      "top": 887,
+      "width": 43,
+      "height": 44
+    }
+  },
+  {
+    "file": "idea-palm.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 1286,
+      "top": 327,
+      "width": 53,
+      "height": 58
+    }
+  },
+  {
+    "file": "idea-routine.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 1286,
+      "top": 420,
+      "width": 53,
+      "height": 60
+    }
+  },
+  {
+    "file": "idea-brush.png",
+    "source": "design/mockups/content-calendar.png",
+    "bounds": {
+      "left": 1286,
+      "top": 513,
+      "width": 53,
+      "height": 60
+    }
+  },
+  {
+    "file": "emily-avatar.png",
+    "source": "design/mockups/leads-crm.png",
+    "bounds": {
+      "left": 1238,
+      "top": 101,
+      "width": 76,
+      "height": 76
+    }
+  },
+  {
+    "file": "sam-avatar.png",
+    "source": "design/mockups/leads-crm.png",
+    "bounds": {
+      "left": 1396,
+      "top": 13,
+      "width": 32,
+      "height": 32
+    }
+  },
+  {
+    "file": "agent-avatar.png",
+    "source": "design/mockups/leads-crm.png",
+    "bounds": {
+      "left": 287,
+      "top": 709,
+      "width": 31,
+      "height": 32
+    }
+  },
+  {
+    "file": "coastal-logo.png",
+    "source": "design/mockups/settings.png",
+    "bounds": {
+      "left": 610,
+      "top": 236,
+      "width": 93,
+      "height": 96
+    }
+  },
+  {
+    "file": "northside-logo.png",
+    "source": "design/mockups/settings.png",
+    "bounds": {
+      "left": 314,
+      "top": 315,
+      "width": 54,
+      "height": 54
+    }
+  },
+  {
+    "file": "bloom-logo.png",
+    "source": "design/mockups/settings.png",
+    "bounds": {
+      "left": 314,
+      "top": 395,
+      "width": 54,
+      "height": 54
+    }
+  },
+  {
+    "file": "alex-avatar.png",
+    "source": "design/mockups/settings.png",
+    "bounds": {
+      "left": 1066,
+      "top": 883,
+      "width": 32,
+      "height": 33
+    }
+  },
+  {
+    "file": "report-cafe.png",
+    "source": "design/mockups/reports.png",
+    "bounds": {
+      "left": 297,
+      "top": 754,
+      "width": 51,
+      "height": 41
+    }
+  },
+  {
+    "file": "report-villas.png",
+    "source": "design/mockups/reports.png",
+    "bounds": {
+      "left": 297,
+      "top": 811,
+      "width": 51,
+      "height": 41
+    }
+  },
+  {
+    "file": "report-interior.png",
+    "source": "design/mockups/reports.png",
+    "bounds": {
+      "left": 297,
+      "top": 868,
+      "width": 51,
+      "height": 41
+    }
+  },
+  {
+    "file": "report-resort.png",
+    "source": "design/mockups/reports.png",
+    "bounds": {
+      "left": 297,
+      "top": 925,
+      "width": 51,
+      "height": 41
+    }
+  }
+]

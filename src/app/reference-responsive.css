@@ -1,0 +1,60 @@
+/* GrailHiiv mobile adaptation of the desktop mockup measurements. */
+@media (max-width: 760px) {
+  .app:has(.page-approvals) .topbar {
+    position: relative;
+    left: auto;
+    right: auto;
+  }
+  .page-approvals {
+    padding-top: 20px;
+  }
+  .page-approvals .page-heading {
+    min-height: 0;
+    margin-bottom: 20px;
+  }
+  .page-approvals .heading-actions {
+    align-self: flex-start;
+  }
+  .approval-item {
+    min-height: 105px;
+    height: 105px;
+  }
+  .review-note small {
+    display: block;
+    margin: 4px 0;
+  }
+  .calendar-grid {
+    grid-template-rows: 114px;
+    grid-auto-rows: 154px;
+  }
+  .lead-card {
+    height: auto;
+    min-height: 143px;
+  }
+  .crm-layout > div {
+    width: 100%;
+    min-width: 0;
+  }
+  .kanban {
+    max-width: 100%;
+  }
+  .settings-form .preference-row {
+    justify-content: flex-start;
+  }
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+  .card-meta > span:not(.badge) {
+    font-size: var(--text-caption, 14px);
+  }
+  .assistant-panel .panel-heading h2 {
+    font-size: 17px;
+  }
+  .asset-list .asset-card > .asset-preview {
+    width: 100px;
+  }
+  .page-reports .metric-card > small {
+    max-width: 80px;
+    font-size: var(--text-caption, 14px);
+  }
+}

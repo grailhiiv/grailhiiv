@@ -1,0 +1,403 @@
+/* GrailHiiv shared readable type scale and responsive layout. */
+:root {
+  --text-caption: 0.875rem;
+  --text-body: 1rem;
+  --text-section: 1.25rem;
+  --text-title: clamp(1.75rem, 2.2vw, 2.125rem);
+}
+body {
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+.sidebar {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sidebar > * {
+  flex-shrink: 0;
+}
+.page h1,
+.is-overview .page-heading h1 {
+  font-size: var(--text-title);
+  line-height: 1.2;
+}
+.page h2,
+.panel-heading h2,
+.assistant-panel .panel-heading h2 {
+  font-size: var(--text-section);
+  line-height: 1.35;
+}
+.page h3 {
+  font-size: var(--text-body);
+  line-height: 1.45;
+}
+.page-heading p,
+.is-overview .page-heading p {
+  font-size: var(--text-body);
+  max-width: none;
+}
+.app
+  :is(
+    small,
+    label,
+    th,
+    td,
+    .badge,
+    .text-link,
+    .card-client,
+    .card-meta > span,
+    .calendar-client,
+    .calendar-post,
+    .calendar-weekdays,
+    .calendar-day-number,
+    .attention-description span,
+    .attention-description strong,
+    .mini-lead strong,
+    .mini-lead small,
+    .metric-top,
+    .metric-top > span,
+    .sidebar-bottom,
+    .sidebar-bottom small,
+    .app-footer,
+    .report-content strong,
+    .review-note,
+    .asset-card strong,
+    .asset-card span,
+    .activity-row strong
+  ) {
+  font-size: var(--text-caption);
+  line-height: 1.45;
+}
+.app :is(input, select, textarea) {
+  font-size: var(--text-body);
+}
+.app .button,
+.heading-actions > .button,
+.is-overview .heading-actions > .button,
+.page-calendar .heading-actions > .button,
+.attention-row .button {
+  font-size: var(--text-caption);
+  min-height: 44px;
+  height: auto;
+  padding: 10px 14px;
+  white-space: normal;
+  line-height: 1.35;
+}
+.icon-button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.topbar,
+.is-overview .topbar,
+.app:has(.page-approvals) .topbar {
+  position: relative;
+  inset: auto;
+  height: 64px;
+  background: #ffffff80;
+}
+.page,
+.is-overview .page,
+.page-approvals {
+  padding-top: 24px;
+}
+.page-heading,
+.is-overview .page-heading,
+.page-approvals .page-heading {
+  min-height: 0;
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: flex-start;
+}
+.heading-actions,
+.is-overview .heading-actions,
+.page-approvals .heading-actions {
+  padding-top: 0;
+  align-self: flex-start;
+  flex-wrap: wrap;
+}
+.metric-grid,
+.page-reports .metric-grid,
+.page-automations .metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.is-overview .metric-card,
+.page-automations .metric-card {
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 6px 12px;
+  padding: 16px;
+  min-height: 112px;
+  align-content: center;
+}
+.is-overview .metric-top > span:first-child,
+.page-automations .metric-top > span {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: var(--text-caption);
+  line-height: 1.45;
+}
+.is-overview .metric-icon {
+  width: 44px;
+  height: 44px;
+}
+.is-overview .metric-card > strong,
+.page-automations .metric-card > strong {
+  grid-column: 2;
+  grid-row: 2;
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 0;
+}
+.metric-arrow {
+  display: none;
+}
+.page-reports .metric-card {
+  min-height: 170px;
+}
+.page-reports .metric-card > small {
+  max-width: none;
+  font-size: var(--text-caption);
+  display: block;
+}
+.page-reports .sparkline {
+  position: static;
+  display: block;
+  margin-top: 10px;
+  height: 32px;
+}
+.attention-row {
+  height: auto;
+  min-height: 84px;
+}
+.attention-description {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.card-meta {
+  flex-wrap: wrap;
+}
+.card-meta > span:not(.badge) {
+  white-space: normal;
+  font-size: var(--text-caption);
+}
+.content-card h3 {
+  min-height: 0;
+}
+.approval-item {
+  height: auto;
+  min-height: 120px;
+}
+.lead-card {
+  height: auto;
+  min-height: 155px;
+}
+.crm-layout > div {
+  min-width: 0;
+}
+.kanban {
+  max-width: 100%;
+}
+.calendar-grid {
+  grid-template-rows: 130px;
+  grid-auto-rows: 220px;
+}
+.calendar-panel {
+  overflow-x: auto;
+}
+.calendar-weekdays,
+.calendar-grid {
+  min-width: 1260px;
+}
+.calendar-post strong,
+.calendar-client {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.calendar-post .badge {
+  white-space: normal;
+}
+.review-note small {
+  display: block;
+  margin: 4px 0;
+}
+.settings-form .preference-row {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.asset-list .asset-card > .asset-preview {
+  width: 100px;
+}
+.chart-scroll {
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+.chart-scroll .reach-chart {
+  width: 100%;
+  min-width: 740px;
+  height: auto;
+  padding: 0;
+}
+.reach-chart text {
+  font-size: 14px;
+}
+@media (max-width: 1400px) {
+  .metric-grid,
+  .page-reports .metric-grid,
+  .page-automations .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .overview-side {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1024px) {
+  :root {
+    --sidebar: 256px;
+  }
+  .sidebar {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 0.2s,
+      visibility 0.2s;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+  .main-shell {
+    margin-left: 0;
+    width: 100%;
+  }
+  .mobile-menu {
+    display: inline-flex;
+  }
+  .mobile-close {
+    display: inline-flex;
+    position: absolute;
+    right: 8px;
+    top: 8px;
+  }
+  .nav-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    border: 0;
+    background: #102c3940;
+    z-index: 25;
+  }
+  .page-leads .page-heading {
+    margin-right: 0;
+  }
+  .content-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .topbar {
+    padding: 0 16px;
+  }
+  .page,
+  .is-overview .page,
+  .page-approvals {
+    padding: 20px 16px;
+  }
+  .page-heading,
+  .is-overview .page-heading,
+  .page-approvals .page-heading {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .heading-actions {
+    width: 100%;
+  }
+  .top-date {
+    display: none;
+  }
+  .overview-side,
+  .report-grid,
+  .report-lower {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .report-side {
+    grid-column: auto;
+  }
+  .content-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .attention-row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px;
+  }
+  .attention-row .button {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .attention-row .client-mark {
+    width: 44px;
+    height: 44px;
+  }
+  .pipeline-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .report-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .crm-layout > div {
+    width: 100%;
+  }
+  .crm-layout .lead-detail {
+    width: min(100%, 380px);
+    min-width: 0;
+    top: 64px;
+  }
+  .settings-form .preference-row {
+    justify-content: flex-start;
+  }
+  .page-automations .metric-top > svg {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (max-width: 480px) {
+  .metric-grid,
+  .page-reports .metric-grid,
+  .page-automations .metric-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .content-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .content-card .card-image {
+    height: 200px;
+  }
+  .report-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .panel-heading {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .settings-tabs {
+    overflow-x: auto;
+  }
+  .asset-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .asset-list .asset-card {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+  .asset-list .asset-card > .asset-preview {
+    width: 80px;
+  }
+}
