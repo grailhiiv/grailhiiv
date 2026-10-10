@@ -14,8 +14,9 @@ import { useWorkspace } from "../workspace-provider";
 import { Badge, ClientMark, Field, Modal, Platform } from "../ui";
 import { downloadFile } from "@/lib/assets";
 import type { Client } from "@/lib/types";
+import { TeamSettings } from "../team-settings";
 export function SettingsScreen() {
-  const { data, clientId, update, toast } = useWorkspace();
+  const { data, clientId, update, toast, cloud, session } = useWorkspace();
   const [tab, setTab] = useState("Clients");
   const [selectedId, setSelectedId] = useState(
     clientId === "all" ? data.clients[0].id : clientId,
@@ -60,7 +61,11 @@ export function SettingsScreen() {
                 </span>
               </button>
             ))}
-            <button className="add-client" onClick={() => setAdding(true)}>
+            <button
+              className="add-client"
+              disabled={cloud && session?.role !== "owner"}
+              onClick={() => setAdding(true)}
+            >
               <Plus size={17} />
               Add client
             </button>
@@ -124,7 +129,8 @@ export function SettingsScreen() {
           </div>
         </section>
       )}
-      {tab === "Team & permissions" && (
+      {tab === "Team & permissions" && cloud && <TeamSettings />}
+      {tab === "Team & permissions" && !cloud && (
         <section className="panel settings-form">
           <h2>
             <ShieldCheck size={20} />
@@ -151,7 +157,9 @@ export function SettingsScreen() {
         <section className="panel settings-form">
           <h2>Connected accounts</h2>
           <p className="muted">
-            No external accounts are connected in this local demo.
+            {cloud
+              ? "Supabase is connected. Social accounts and automation services are not connected yet."
+              : "No external accounts are connected in this local demo."}
           </p>
           {["Supabase", "n8n", "Instagram", "Facebook", "LinkedIn", "CRM"].map(
             (name) => (
@@ -160,7 +168,9 @@ export function SettingsScreen() {
                   <Unplug size={18} />
                 </span>
                 <strong>{name}</strong>
-                <Badge>Not connected</Badge>
+                <Badge>
+                  {name === "Supabase" && cloud ? "Connected" : "Not connected"}
+                </Badge>
               </div>
             ),
           )}
@@ -236,7 +246,7 @@ export function SettingsScreen() {
   );
 }
 function ClientSettings({ client }: { client: Client }) {
-  const { update, toast, activity } = useWorkspace();
+  const { update, toast, activity, cloud, session, refresh } = useWorkspace();
   const [form, setForm] = useState(client);
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -268,11 +278,40 @@ function ClientSettings({ client }: { client: Client }) {
                   accept="image/png,image/jpeg"
                   className="visually-hidden"
                   aria-label="Change client logo"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     if (file.size > 1024 * 1024) {
                       toast("Choose a logo under 1 MB.");
+                      return;
+                    }
+                    if (cloud) {
+                      try {
+                        if (session?.role !== "owner")
+                          throw new Error(
+                            "Only owners can change client logos.",
+                          );
+                        const body = new FormData();
+                        body.set("workspaceId", session.workspaceId);
+                        body.set("clientId", client.id);
+                        body.set("file", file);
+                        const response = await fetch("/api/assets", {
+                          method: "POST",
+                          body,
+                        });
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error);
+                        setForm((previous) => ({
+                          ...previous,
+                          logo: result.asset.url,
+                        }));
+                        await refresh();
+                        toast(
+                          "Logo uploaded. Save client settings to apply it.",
+                        );
+                      } catch (error) {
+                        toast((error as Error).message);
+                      }
                       return;
                     }
                     const reader = new FileReader();
@@ -401,8 +440,19 @@ function ClientSettings({ client }: { client: Client }) {
           <section className="panel">
             <h3>Team access</h3>
             {[
-              ["Sam Lee", "sam@agency.com", "Owner", "sam-avatar"],
-              [client.contact, client.email, "Client reviewer", "alex-avatar"],
+              ...(!cloud
+                ? [["Sam Lee", "sam@agency.com", "Owner", "sam-avatar"]]
+                : []),
+              ...(!cloud
+                ? [
+                    [
+                      client.contact,
+                      client.email,
+                      "Client reviewer",
+                      "alex-avatar",
+                    ],
+                  ]
+                : []),
             ].map(([name, email, role, avatar]) => (
               <div className="team-row" key={role}>
                 <img src={`/media/mockup/${avatar}.png`} alt="" />
@@ -414,7 +464,9 @@ function ClientSettings({ client }: { client: Client }) {
               </div>
             ))}
             <small className="muted">
-              Sample roles · authentication not connected
+              {cloud
+                ? "Manage assigned members in Team & permissions."
+                : "Sample roles · authentication not connected"}
             </small>
           </section>
         </div>

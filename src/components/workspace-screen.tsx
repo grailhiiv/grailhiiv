@@ -39,14 +39,26 @@ const headings: Record<Section, [string, string]> = {
   settings: ["Settings", "Manage your workspace and client preferences"],
 };
 export function WorkspaceScreen({ section }: { section: Section }) {
-  const { data, clientId } = useWorkspace();
+  const { data, clientId, session } = useWorkspace();
+  const reviewer = session?.role === "client_reviewer";
   const [editor, setEditor] = useState<{ post?: Post; date?: string } | null>(
     null,
   );
   const [addingLead, setAddingLead] = useState(false);
   const [addingAutomation, setAddingAutomation] = useState(false);
-  const create = (date = "") => setEditor({ date });
-  const edit = (post: Post) => setEditor({ post });
+  const create = (date = "") => {
+    if (!reviewer) setEditor({ date });
+  };
+  const edit = (post: Post) => {
+    if (!reviewer) setEditor({ post });
+  };
+  if (reviewer && !["overview", "approvals", "assets"].includes(section))
+    return (
+      <div className="page">
+        <h1>Client access</h1>
+        <p>Your role provides content review and asset access.</p>
+      </div>
+    );
   return (
     <div className={"page page-" + section}>
       <div className="page-heading">
@@ -55,7 +67,7 @@ export function WorkspaceScreen({ section }: { section: Section }) {
           <p>{headings[section][1]}</p>
         </div>
         <div className="heading-actions">
-          {(section === "overview" || section === "calendar") && (
+          {!reviewer && (section === "overview" || section === "calendar") && (
             <button className="button primary" onClick={() => create()}>
               <Plus size={20} />
               Create content
@@ -79,7 +91,7 @@ export function WorkspaceScreen({ section }: { section: Section }) {
               New automation
             </button>
           )}
-          {section === "assets" && (
+          {section === "assets" && !reviewer && (
             <label className="button primary" htmlFor="asset-upload">
               <Upload size={20} />
               Upload assets
@@ -108,7 +120,12 @@ export function WorkspaceScreen({ section }: { section: Section }) {
           )}
         </div>
       </div>
-      {section === "overview" && <Overview create={create} edit={edit} />}
+      {section === "overview" &&
+        (reviewer ? (
+          <Approvals edit={edit} />
+        ) : (
+          <Overview create={create} edit={edit} />
+        ))}
       {section === "calendar" && <CalendarScreen create={create} edit={edit} />}
       {section === "approvals" && <Approvals edit={edit} />}
       {section === "leads" && (

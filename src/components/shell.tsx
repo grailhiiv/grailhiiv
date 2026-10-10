@@ -31,8 +31,16 @@ const nav = [
   ["/settings", "Settings", Settings2],
 ] as const;
 export function Shell({ children }: { children: React.ReactNode }) {
-  const { data, clientId, setClientId, ready, notice, storageError } =
-    useWorkspace();
+  const {
+    data,
+    clientId,
+    setClientId,
+    ready,
+    notice,
+    storageError,
+    session,
+    cloud,
+  } = useWorkspace();
   const pathname = usePathname();
   const [mobile, setMobile] = useState(false);
   const [notifications, setNotifications] = useState(false);
@@ -84,28 +92,36 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <ChevronDown size={14} />
         </div>
         <nav aria-label="Main navigation">
-          {nav.map(([href, label, Icon]) => (
-            <Link
-              key={href}
-              className={"nav-item " + (pathname === href ? "active" : "")}
-              href={href}
-              onClick={() => setMobile(false)}
-              aria-current={pathname === href ? "page" : undefined}
-            >
-              <Icon size={22} />
-              <span>{label}</span>
-              {href === "/approvals" && pending > 0 && (
-                <span className="nav-count">{pending}</span>
-              )}
-            </Link>
-          ))}
+          {nav
+            .filter(
+              ([href]) =>
+                session?.role !== "client_reviewer" ||
+                ["/", "/approvals", "/assets"].includes(href),
+            )
+            .map(([href, label, Icon]) => (
+              <Link
+                key={href}
+                className={"nav-item " + (pathname === href ? "active" : "")}
+                href={href}
+                onClick={() => setMobile(false)}
+                aria-current={pathname === href ? "page" : undefined}
+              >
+                <Icon size={22} />
+                <span>{label}</span>
+                {href === "/approvals" && pending > 0 && (
+                  <span className="nav-count">{pending}</span>
+                )}
+              </Link>
+            ))}
         </nav>
         <div className="sidebar-bottom">
           <div className="workspace-plan">
             <span className="status-dot" />
             <div>
-              <strong>Local demo</strong>
-              <small>Saved in this browser</small>
+              <strong>{cloud ? "Shared workspace" : "Local demo"}</strong>
+              <small>
+                {cloud ? "Saved in Supabase" : "Saved in this browser"}
+              </small>
             </div>
           </div>
           <Link href="/settings" className="setup-link">
@@ -153,7 +169,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
                 src="/media/mockup/sam-avatar.png"
                 alt=""
               />
-              <span>Sam Lee</span>
+              <span>{session?.email || "Sam Lee"}</span>
               <ChevronDown size={14} />
             </Link>
           </div>
@@ -165,8 +181,14 @@ export function Shell({ children }: { children: React.ReactNode }) {
         )}
         <main>{children}</main>
         <footer className="app-footer">
-          <span>GrailHiiv · Sample workspace</span>
-          <span>Local demo · No external accounts connected</span>
+          <span>
+            GrailHiiv · {cloud ? data.preferences.name : "Sample workspace"}
+          </span>
+          <span>
+            {cloud
+              ? "Shared workspace · AI and publishing not connected"
+              : "Local demo · No external accounts connected"}
+          </span>
         </footer>
       </div>
       {notice && (

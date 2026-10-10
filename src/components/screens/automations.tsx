@@ -318,9 +318,11 @@ export function AutomationsScreen({
   );
 }
 function AutomationForm({ onClose }: { onClose: () => void }) {
-  const { data, clientId, update, toast } = useWorkspace();
+  const { data, clientId, update, toast, cloud } = useWorkspace();
   const [name, setName] = useState("");
-  const [client, setClient] = useState(clientId);
+  const [client, setClient] = useState(
+    cloud && clientId === "all" ? data.clients[0].id : clientId,
+  );
   const [trigger, setTrigger] = useState("Content approved");
   return (
     <Modal title="New automation" onClose={onClose}>
@@ -357,7 +359,7 @@ function AutomationForm({ onClose }: { onClose: () => void }) {
         </Field>
         <Field label="Client">
           <select value={client} onChange={(e) => setClient(e.target.value)}>
-            <option value="all">All clients</option>
+            {!cloud && <option value="all">All clients</option>}
             {data.clients.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}

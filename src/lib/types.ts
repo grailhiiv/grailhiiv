@@ -79,6 +79,7 @@ export type Asset = {
   status: "Approved" | "Draft";
   tags: string[];
   uploaded: boolean;
+  storagePath?: string;
   variants?: Partial<
     Record<"overview" | "calendar" | "approval" | "detail", string>
   >;

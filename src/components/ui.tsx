@@ -82,7 +82,7 @@ export function AssetPreview({
     let active = true;
     let objectUrl = "";
     setUrl("");
-    if (asset?.uploaded) {
+    if (asset?.uploaded && !asset.storagePath) {
       loadFile(asset.id)
         .then((blob) => {
           if (blob && active) {
@@ -98,7 +98,9 @@ export function AssetPreview({
     };
   }, [asset?.id, asset?.uploaded]);
   const src = asset?.uploaded
-    ? url
+    ? asset.storagePath
+      ? asset.url
+      : url
     : (variant && asset?.variants?.[variant]) || asset?.url;
   if (src && asset?.type.startsWith("image/"))
     return (

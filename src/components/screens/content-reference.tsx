@@ -41,7 +41,7 @@ type ContentProps = {
 };
 function useContent() {
   const workspace = useWorkspace();
-  const { data, update, toast, activity } = workspace;
+  const { data, update, toast, activity, cloud } = workspace;
   function status(post: Post, next: PostStatus) {
     try {
       const client = data.clients.find((c) => c.id === post.clientId)!;
@@ -53,7 +53,9 @@ function useContent() {
       activity(`${post.title} · ${next}`, post.clientId);
       toast(
         next === "Scheduled"
-          ? "Approved and added to your demo schedule"
+          ? cloud
+            ? "Approval submitted to the shared schedule"
+            : "Approved and added to your demo schedule"
           : `Post ${next.toLowerCase()}`,
       );
     } catch (error) {
@@ -747,8 +749,17 @@ export function CalendarScreen({ create, edit }: ContentProps) {
   );
 }
 export function Approvals({ edit }: { edit: (p: Post) => void }) {
-  const { data, clientId, setClientId, update, status, activity, toast } =
-    useContent();
+  const {
+    data,
+    clientId,
+    setClientId,
+    update,
+    status,
+    activity,
+    toast,
+    session,
+    cloud,
+  } = useContent();
   const [tab, setTab] = useState("Pending");
   const [platform, setPlatform] = useState("all");
   const [selectedId, setSelectedId] = useState("");
@@ -953,7 +964,8 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                   {formatDate(selected.date)} · {formatTime(selected.time)}
                 </div>
                 <h3 className="review-notes-title">Review notes</h3>
-                {selected.id === "p3" &&
+                {!cloud &&
+                  selected.id === "p3" &&
                   demoNotes.map(([name, date, text, avatar], i) => (
                     <div className="review-note" key={i}>
                       <img src={`/media/mockup/${avatar}.png`} alt="" />
@@ -968,13 +980,15 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                   <div className="review-note" key={i}>
                     <img src="/media/mockup/reviewer-avatar.png" alt="" />
                     <div>
-                      <strong>Sam Lee</strong>
+                      <strong>
+                        {cloud ? "Workspace feedback" : "Sam Lee"}
+                      </strong>
                       <small>{new Date(n.date).toLocaleString()}</small>
                       <p>{n.text}</p>
                     </div>
                   </div>
                 ))}
-                {selected.id !== "p3" && !selected.notes.length && (
+                {(cloud || selected.id !== "p3") && !selected.notes.length && (
                   <p className="muted small-text">
                     No feedback yet. Leave a note for your team.
                   </p>
@@ -1001,35 +1015,41 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
               )}
             </div>
             <div className="approval-footer">
-              <button className="button" onClick={() => edit(selected)}>
+              <button
+                className="button"
+                disabled={session?.role === "client_reviewer"}
+                onClick={() => edit(selected)}
+              >
                 <Pencil size={15} />
                 Edit content
               </button>
               <div>
-                {tab === "Pending" && (
-                  <>
-                    <button
-                      className="button"
-                      onClick={() => addFeedback(true)}
-                    >
-                      Request changes
-                    </button>
+                {tab === "Pending" &&
+                  (!cloud || session?.role !== "team_member") && (
+                    <>
+                      <button
+                        className="button"
+                        onClick={() => addFeedback(true)}
+                      >
+                        Request changes
+                      </button>
+                      <button
+                        className="button primary"
+                        onClick={() => status(selected, "Scheduled")}
+                      >
+                        Approve & schedule
+                      </button>
+                    </>
+                  )}
+                {tab === "Changes requested" &&
+                  session?.role !== "client_reviewer" && (
                     <button
                       className="button primary"
-                      onClick={() => status(selected, "Scheduled")}
+                      onClick={() => status(selected, "Awaiting approval")}
                     >
-                      Approve & schedule
+                      Resubmit for approval
                     </button>
-                  </>
-                )}
-                {tab === "Changes requested" && (
-                  <button
-                    className="button primary"
-                    onClick={() => status(selected, "Awaiting approval")}
-                  >
-                    Resubmit for approval
-                  </button>
-                )}
+                  )}
               </div>
             </div>
           </section>

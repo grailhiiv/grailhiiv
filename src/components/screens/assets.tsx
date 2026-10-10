@@ -20,8 +20,17 @@ export function AssetsScreen({
 }: {
   createFromAsset: (asset: Asset) => void;
 }) {
-  const { data, clientId, setClientId, update, toast, activity } =
-    useWorkspace();
+  const {
+    data,
+    clientId,
+    setClientId,
+    update,
+    toast,
+    activity,
+    cloud,
+    session,
+    refresh,
+  } = useWorkspace();
   const [selectedId, setSelectedId] = useState("coffee");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All assets");
@@ -50,6 +59,25 @@ export function AssetsScreen({
   async function upload() {
     setBusy(true);
     try {
+      if (cloud) {
+        if (!session) throw new Error("Sign in to upload assets.");
+        for (const file of pendingFiles) {
+          const form = new FormData();
+          form.set("workspaceId", session.workspaceId);
+          form.set("clientId", uploadClient);
+          form.set("file", file);
+          const response = await fetch("/api/assets", {
+            method: "POST",
+            body: form,
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error);
+        }
+        await refresh();
+        setPendingFiles([]);
+        toast("Assets saved to private Supabase Storage");
+        return;
+      }
       const records: Asset[] = [];
       for (const file of pendingFiles) {
         if (file.size > 10 * 1024 * 1024)
@@ -92,6 +120,10 @@ export function AssetsScreen({
     try {
       let url = selected.url;
       let temporary = false;
+      if (selected.storagePath) {
+        window.location.assign(selected.url + "&download=1");
+        return;
+      }
       if (selected.uploaded) {
         const blob = await loadFile(selected.id);
         if (!blob) throw new Error("This file is unavailable in this browser.");
@@ -283,25 +315,27 @@ export function AssetsScreen({
                 </p>
               </div>
             </div>
-            {selected.status === "Draft" && (
-              <button
-                className="button full"
-                onClick={() => {
-                  update((prev) => ({
-                    ...prev,
-                    assets: prev.assets.map((a) =>
-                      a.id === selected.id ? { ...a, status: "Approved" } : a,
-                    ),
-                  }));
-                  toast("Asset approved");
-                }}
-              >
-                <Check size={16} />
-                Approve asset
-              </button>
-            )}
+            {selected.status === "Draft" &&
+              session?.role !== "client_reviewer" && (
+                <button
+                  className="button full"
+                  onClick={() => {
+                    update((prev) => ({
+                      ...prev,
+                      assets: prev.assets.map((a) =>
+                        a.id === selected.id ? { ...a, status: "Approved" } : a,
+                      ),
+                    }));
+                    toast("Asset approved");
+                  }}
+                >
+                  <Check size={16} />
+                  Approve asset
+                </button>
+              )}
             <button
               className="button primary full"
+              disabled={session?.role === "client_reviewer"}
               onClick={() => createFromAsset(selected)}
             >
               <ImagePlus size={18} />
