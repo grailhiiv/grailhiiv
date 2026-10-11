@@ -19,7 +19,7 @@ import {
 } from "@/lib/cloud";
 import type { Workspace } from "@/lib/types";
 import { AuthPanel, WorkspaceOnboarding } from "./auth-panel";
-import { CloudControls, EmptyCloudWorkspace } from "./cloud-controls";
+import { EmptyCloudWorkspace } from "./cloud-controls";
 const storageKey = "grailhiiv.workspace.v1";
 type Context = {
   data: Workspace;
@@ -31,9 +31,13 @@ type Context = {
   activity: (text: string, clientId?: string) => void;
   notice: string;
   storageError: string;
+  saving: boolean;
   session: CloudSession | null;
   cloud: boolean;
   refresh: () => Promise<void>;
+  logout: () => Promise<void>;
+  workspaces: { workspace_id: string; role: string }[];
+  switchWorkspace: (id: string) => void;
 };
 type Remote = {
   data?: Workspace;
@@ -45,9 +49,11 @@ const WorkspaceContext = createContext<Context | null>(null);
 export function WorkspaceProvider({
   children,
   mode = "demo",
+  demoLogoutUrl = "/login",
 }: {
   children: React.ReactNode;
   mode?: "demo" | "cloud" | "setup";
+  demoLogoutUrl?: string;
 }) {
   const cloud = mode === "cloud";
   const pathname = usePathname();
@@ -285,9 +291,19 @@ export function WorkspaceProvider({
     activity,
     notice,
     storageError,
+    saving: pending > 0,
     session,
     cloud,
-    refresh,
+    refresh: cloud ? refresh : async () => window.location.reload(),
+    logout: async () => {
+      if (cloud) await cloudRequest("/api/auth", { action: "logout" });
+      window.location.assign(cloud ? "/login" : demoLogoutUrl);
+    },
+    workspaces,
+    switchWorkspace: (id) => {
+      setClient("all");
+      void refresh(id);
+    },
   };
   if (mode === "setup")
     return (
@@ -312,33 +328,27 @@ export function WorkspaceProvider({
     return (
       <main className="auth-page">
         <section className="auth-card">
-          <h1>Workspace unavailable</h1>
+          <h1>Workspace Unavailable</h1>
           <p role="alert">{storageError}</p>
-          <button onClick={() => void refresh()}>Try again</button>
+          <button onClick={() => void refresh()}>Try Again</button>
           <button
             onClick={async () => {
               await cloudRequest("/api/auth", { action: "logout" });
               window.location.assign("/login");
             }}
           >
-            Sign out
+            Sign Out
           </button>
         </section>
       </main>
     );
   return (
     <WorkspaceContext.Provider value={value}>
-      {cloud && session && (
-        <CloudControls
-          pending={pending}
-          workspaces={workspaces}
-          switchWorkspace={(id) => {
-            setClient("all");
-            void refresh(id);
-          }}
-        />
-      )}
-      {cloud && ready && session && !data.clients.length ? (
+      {cloud &&
+      ready &&
+      session &&
+      !data.clients.length &&
+      pathname !== "/settings" ? (
         <EmptyCloudWorkspace />
       ) : (
         children

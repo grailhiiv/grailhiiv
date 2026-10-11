@@ -36,7 +36,7 @@ export function TeamSettings() {
   if (session?.role !== "owner")
     return (
       <section className="panel cloud-team">
-        <h2>Your access</h2>
+        <h2>Your Access</h2>
         <p>
           {session?.email} · {session?.role.replaceAll("_", " ")}
         </p>
@@ -60,7 +60,7 @@ export function TeamSettings() {
   }
   return (
     <section className="panel cloud-team">
-      <h2>Team & client permissions</h2>
+      <h2>Team & Client Permissions</h2>
       <p>
         Owners have agency-wide access. Team members edit assigned clients.
         Client reviewers see assigned content and assets and can leave feedback
@@ -102,7 +102,7 @@ export function TeamSettings() {
         }}
       >
         <label>
-          Invite email
+          Invite Email
           <input name="email" type="email" required />
         </label>
         <label>
@@ -113,7 +113,7 @@ export function TeamSettings() {
           </select>
         </label>
         <fieldset>
-          <legend>Assigned clients</legend>
+          <legend>Assigned Clients</legend>
           {data.clients.map((c) => (
             <label className="client-check" key={c.id}>
               <input type="checkbox" name="client" value={c.id} />
@@ -123,9 +123,9 @@ export function TeamSettings() {
         </fieldset>
         <label className="client-check">
           <input type="checkbox" name="sendEmail" />
-          Send invitation email (requires server configuration)
+          Send Invitation Email (Requires Server Configuration)
         </label>
-        <button disabled={busy}>Create invitation</button>
+        <button disabled={busy}>Create Invitation</button>
       </form>
       <p role="status">{message}</p>
       <h3>Members</h3>
@@ -151,7 +151,7 @@ export function TeamSettings() {
           }
         />
       ))}
-      <h3>Pending invitations</h3>
+      <h3>Pending Invitations</h3>
       {team?.invitations.map((i) => (
         <div className="cloud-member" key={i.id}>
           <span>
@@ -229,10 +229,10 @@ function Member({
             ))}
           </fieldset>
           <button disabled={busy} onClick={() => void save(role, ids, false)}>
-            Save access
+            Save Access
           </button>
           <button disabled={busy} onClick={() => void save(role, ids, true)}>
-            Remove member
+            Remove Member
           </button>
         </>
       )}

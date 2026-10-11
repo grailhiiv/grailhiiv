@@ -80,6 +80,8 @@ export type Asset = {
   tags: string[];
   uploaded: boolean;
   storagePath?: string;
+  thumbnailPath?: string;
+  thumbnailSize?: number;
   variants?: Partial<
     Record<"overview" | "calendar" | "approval" | "detail", string>
   >;

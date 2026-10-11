@@ -3,59 +3,7 @@ import { useState } from "react";
 import { useWorkspace } from "./workspace-provider";
 import { cloudRequest } from "@/lib/cloud";
 import type { Client } from "@/lib/types";
-export function CloudControls({
-  pending,
-  workspaces,
-  switchWorkspace,
-}: {
-  pending: number;
-  workspaces: { workspace_id: string; role: string }[];
-  switchWorkspace: (id: string) => void;
-}) {
-  const { session, storageError, refresh, data } = useWorkspace();
-  return (
-    <div
-      className={"cloud-controls" + (data.clients.length ? " has-sidebar" : "")}
-    >
-      <span className="cloud-identity" title={session?.email}>
-        {session?.email} · {session?.role.replaceAll("_", " ")}
-      </span>
-      <span role="status">
-        {storageError
-          ? "Save failed"
-          : pending
-            ? "Saving…"
-            : "Shared workspace"}
-      </span>
-      {workspaces.length > 1 && (
-        <select
-          aria-label="Workspace"
-          value={session?.workspaceId}
-          disabled={!!pending}
-          onChange={(e) => switchWorkspace(e.target.value)}
-        >
-          {workspaces.map((w) => (
-            <option key={w.workspace_id} value={w.workspace_id}>
-              {w.workspace_id} ({w.role})
-            </option>
-          ))}
-        </select>
-      )}
-      <button disabled={!!pending} onClick={() => void refresh()}>
-        Refresh
-      </button>
-      <button
-        disabled={!!pending}
-        onClick={async () => {
-          await cloudRequest("/api/auth", { action: "logout" });
-          window.location.assign("/login");
-        }}
-      >
-        Sign out
-      </button>
-    </div>
-  );
-}
+import { AccountMenu } from "./account-menu";
 export function ImportBrowserRecords() {
   const { session, refresh, toast } = useWorkspace();
   const [busy, setBusy] = useState(false);
@@ -66,7 +14,7 @@ export function ImportBrowserRecords() {
   } | null>(null);
   return (
     <div>
-      <h3>Import this browser’s demo records</h3>
+      <h3>Import This Browser’s Demo Records</h3>
       <p>
         Import into an empty workspace. Posts become drafts; previous approvals,
         simulated activity and agency-wide demo workflows are excluded.
@@ -90,7 +38,7 @@ export function ImportBrowserRecords() {
             }
           }}
         >
-          Review import
+          Review Import
         </button>
       ) : (
         <>
@@ -122,7 +70,7 @@ export function ImportBrowserRecords() {
               }
             }}
           >
-            {busy ? "Importing…" : "Confirm import"}
+            {busy ? "Importing…" : "Confirm Import"}
           </button>
           <button disabled={busy} onClick={() => setReview(null)}>
             Cancel
@@ -133,14 +81,43 @@ export function ImportBrowserRecords() {
   );
 }
 export function EmptyCloudWorkspace() {
-  const { session, update, storageError, notice } = useWorkspace();
+  const {
+    session,
+    update,
+    storageError,
+    notice,
+    workspaces,
+    switchWorkspace,
+    saving,
+  } = useWorkspace();
   return (
     <main className="auth-page">
+      <header className="empty-account-header">
+        {workspaces.length > 1 && (
+          <select
+            className="workspace-selector"
+            aria-label="Workspace"
+            value={session?.workspaceId}
+            disabled={saving}
+            onChange={(event) => switchWorkspace(event.target.value)}
+          >
+            {workspaces.map((workspace) => (
+              <option
+                key={workspace.workspace_id}
+                value={workspace.workspace_id}
+              >
+                {workspace.workspace_id} ({workspace.role})
+              </option>
+            ))}
+          </select>
+        )}
+        <AccountMenu />
+      </header>
       <section className="auth-card">
         <h1>
           {session?.role === "owner"
-            ? "Create your first client"
-            : "No clients assigned"}
+            ? "Create Your First Client"
+            : "No Clients Assigned"}
         </h1>
         {session?.role === "owner" ? (
           <>
@@ -167,10 +144,10 @@ export function EmptyCloudWorkspace() {
               }}
             >
               <label>
-                Client name
+                Client Name
                 <input name="name" required maxLength={200} />
               </label>
-              <button className="primary-button">Create client</button>
+              <button className="primary-button">Create Client</button>
             </form>
             <ImportBrowserRecords />
           </>

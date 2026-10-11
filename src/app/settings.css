@@ -1,0 +1,104 @@
+/* Settings must contain its content, rather than relying on page-level clipping. */
+.page-settings .settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 0;
+  overflow: visible;
+}
+.page-settings .settings-tabs > button {
+  min-height: 44px;
+  padding: 8px 0 12px;
+  background: transparent;
+}
+.page-settings .settings-tabs > button:is(:hover, :active) { background: transparent; }
+.page-settings :is(.settings-layout, .settings-form, .cloud-team, .form-grid, .field) { min-width: 0; }
+.page-settings :is(.settings-form, .cloud-team) { overflow-wrap: anywhere; }
+.settings-fields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.page-settings .settings-client-heading > div { min-width: 0; }
+.page-settings .settings-client-heading h2 { overflow-wrap: anywhere; }
+.page-settings .client-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 6px;
+  padding: 8px;
+  min-height: 0;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.page-settings .client-list > button {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 64px;
+  margin: 0;
+  padding: 10px 12px;
+  gap: 12px;
+  border-left: 3px solid transparent;
+}
+.page-settings .client-list > button.selected { border-left-color: #067c89; }
+.page-settings .client-list .client-mark { width: 40px; height: 40px; flex-shrink: 0; }
+.page-settings .client-list .add-client {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  border-radius: 6px;
+  color: var(--teal);
+}
+.page-settings .client-list .add-client:is(:hover, :active) { background: transparent; color: var(--teal-dark); }
+.page-settings .client-list .add-client:hover { text-decoration: underline; text-underline-offset: 3px; }
+.operations-settings .ai-usage-summary { padding: 18px 0; margin: 16px 0; border-block: 1px solid var(--line); }
+.operations-settings .ai-usage-summary > span { display: block; color: #596579; }
+.operations-settings .ai-usage-summary > strong { display: block; font-size: 26px; line-height: 36px; margin-top: 4px; }
+.operations-settings .ai-usage-summary p { margin: 6px 0; }
+.operations-settings .ai-usage-summary small { display: block; color: #596579; font-size: 14px; }
+.operations-settings .settings-control .field { margin-bottom: 0; }
+.operations-settings .field-help { font-size: 14px; line-height: 22px; color: #596579; margin: 6px 0 0; }
+.operations-settings > form .settings-control { max-width: 420px; }
+.operations-settings > form .modal-footer { justify-content: flex-start; }
+.operations-settings .form-grid .settings-control { max-width: none; }
+.operations-settings .settings-disclosure { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 4px; }
+.operations-settings .settings-disclosure > summary { cursor: pointer; min-height: 44px; padding: 12px 0; font-weight: 600; color: #1e344a; }
+.operations-settings .settings-disclosure > summary:hover { color: var(--teal); }
+.operations-settings .settings-disclosure > p { margin: 4px 0 20px; }
+.operations-settings .ai-usage-details { margin-top: 20px; }
+.operations-settings .settings-status-row { display: flex; justify-content: space-between; align-items: start; gap: 16px; border-bottom: 1px solid var(--line); padding: 14px 0; }
+.operations-settings .settings-status-row > div { min-width: 0; }
+.operations-settings .settings-status-row small { display: block; color: #596579; margin-top: 4px; font-size: 14px; }
+.operations-settings .settings-status-row p { margin: 8px 0 0; }
+.operations-settings .settings-status-row > span { flex-shrink: 0; font-size: 14px; }
+.operations-settings .settings-feedback { margin: 12px 0; }
+@media (max-width: 480px) { .operations-settings .settings-status-row { flex-direction: column; gap: 6px; } }
+.page-settings .client-list > button > span { min-width: 0; }
+.page-settings .client-list :is(strong, small) { white-space: normal; overflow-wrap: anywhere; }
+.page-settings .modal-footer { flex-wrap: wrap; gap: 8px; }
+.page-settings .modal-footer > button { min-width: 0; white-space: normal; }
+.page-settings .cloud-team form { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.page-settings .cloud-team :is(label, fieldset, .cloud-member) { min-width: 0; max-width: 100%; }
+.page-settings .cloud-team .client-check { overflow-wrap: anywhere; }
+.page-settings .cloud-team input:not([type="checkbox"]):not([type="radio"]),
+.page-settings .cloud-team select { width: 100%; min-width: 0; max-width: 100%; }
+.page-settings .cloud-member > select { width: auto; }
+.page-settings .cloud-member > span { min-width: 0; overflow-wrap: anywhere; }
+.page-settings .operations-settings .preference-row > span { min-width: 0; overflow-wrap: anywhere; }
+.page-settings .operations-settings .preference-row > input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 18px; }
+.page-settings .operations-settings :is(.detail-section, p) { min-width: 0; overflow-wrap: anywhere; }
+.page-settings .settings-fields:disabled :is(input, select, textarea) { color: #596579; background: #f7f9fa; }
+@media (max-width: 1000px) {
+  .page-settings .settings-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; }
+  .page-settings .settings-tabs > button { white-space: normal; text-align: left; }
+}
+@media (max-width: 600px) {
+  .page-settings .settings-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; }
+  .page-settings .client-list { max-height: 320px; }
+  .page-settings .settings-form { padding: 20px 16px; }
+  .page-settings .cloud-team :is(input:not([type="checkbox"]):not([type="radio"]), select) { font-size: 16px; }
+  .page-settings .cloud-member > fieldset { width: 100%; }
+}

@@ -1,0 +1,98 @@
+.page-automations > .integration-banner.automation-connection {
+  padding: 16px 20px;
+  border: 1px solid #dce9e6;
+  background: #f0f7f5;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.page-automations > .integration-banner.automation-connection > div {
+  flex: 1;
+  min-width: 180px;
+}
+.page-automations > .integration-banner.demo-connection {
+  background: #f5f6f8;
+  border-color: #e2e5ea;
+}
+.page-automations .metric-grid.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.page-automations .automation-panel td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 260px;
+}
+.page-automations .automation-panel table {
+  min-width: 760px;
+}
+.page-automations .automation-panel .automation-run-table {
+  table-layout: fixed;
+}
+.page-automations .automation-run-table th:last-child {
+  width: 35%;
+}
+.page-automations .automation-panel select {
+  width: 220px;
+}
+.page-automations .automation-workflow-table th:last-child,
+.page-automations .automation-workflow-table td:last-child {
+  position: sticky;
+  right: 0;
+  width: 190px;
+  min-width: 190px;
+  max-width: 190px;
+  background: white;
+  box-shadow: -1px 0 #e2e5ea;
+}
+.page-automations .automation-workflow-table th:last-child {
+  background: #f5f6f7;
+}
+.automation-scroll-note {
+  display: none;
+  margin: 0;
+  padding: 10px 20px;
+  color: #596579;
+  font-size: 14px;
+}
+@media (max-width: 1100px) {
+  .automation-scroll-note {
+    display: block;
+  }
+}
+.page-automations .automation-run-hint {
+  margin: 6px 0 0;
+  max-width: 190px;
+}
+.page-automations .table-wrap:focus-visible {
+  outline: 2px solid #315df0;
+  outline-offset: -2px;
+}
+@media (max-width: 600px) {
+  .page-automations .metric-grid.three {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .page-automations .metric-card {
+    min-height: 90px;
+  }
+}
+.page-automations > .integration-banner.automation-connection p {
+  display: block;
+  color: #4b7376;
+}
+.page-automations > .integration-banner.automation-connection strong {
+  font-weight: 600;
+}
+.page-automations .automation-panel {
+  margin-bottom: 24px;
+}
+.page-automations .automation-panel .sample-note {
+  padding: 16px 20px;
+  line-height: 1.6;
+}
+.page-automations .automation-panel .panel-heading {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-automations .automation-panel select,
+.page-automations .automation-panel input {
+  max-width: 100%;
+}

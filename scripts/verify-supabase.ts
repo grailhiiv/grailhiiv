@@ -5,6 +5,7 @@ import { randomUUID, randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { createSeed } from "../src/lib/data";
 import { chromium, expect } from "@playwright/test";
+import sharp from "sharp";
 async function main() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!,
     key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -26,6 +27,7 @@ async function main() {
   }[] = [];
   let wid = "",
     path = "",
+    thumbnailPath = "",
     importWid = "";
   async function api(route: string, cookie = "", body?: unknown) {
     const response = await fetch(origin + route, {
@@ -137,6 +139,16 @@ async function main() {
     console.log(
       "PASS: users share assigned records; reviewers cannot read leads or the second client",
     );
+    const social = await ok("/api/social?workspaceId=" + wid, owner.cookie);
+    assert.deepEqual(social.data.connections, []);
+    assert.deepEqual(social.data.jobs, []);
+    assert.equal(typeof social.data.configured, "boolean");
+    assert.equal(JSON.stringify(social.data).includes("token_cipher"), false);
+    for (const user of [team, reviewer, outsider]) {
+      const blocked = await api("/api/social?workspaceId=" + wid, user.cookie);
+      assert.equal(blocked.response.ok, false);
+    }
+    console.log("PASS: social settings API exposes no tokens and rejects team, reviewer and outsider management");
     const outsiderView = (
       await ok("/api/workspace?workspaceId=" + wid, outsider.cookie)
     ).data;
@@ -231,10 +243,16 @@ async function main() {
       "PASS: reviewer approval persists across users; stale writes are rejected",
     );
     const png = Uint8Array.from(
-      Buffer.from(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2Z1cAAAAASUVORK5CYII=",
-        "base64",
-      ),
+      await sharp({
+        create: {
+          width: 2,
+          height: 2,
+          channels: 4,
+          background: { r: 12, g: 34, b: 56, alpha: 1 },
+        },
+      })
+        .png()
+        .toBuffer(),
     );
     const form = new FormData();
     form.set("workspaceId", wid);
@@ -248,6 +266,8 @@ async function main() {
     const uploadData = await upload.json();
     assert.ok(upload.ok, uploadData.error);
     path = uploadData.asset.storagePath;
+    thumbnailPath = uploadData.asset.thumbnailPath;
+    assert.ok(thumbnailPath);
     const download = await fetch(origin + uploadData.asset.url, {
       headers: { Cookie: reviewer.cookie },
       redirect: "manual",
@@ -256,6 +276,18 @@ async function main() {
     const bytes = await fetch(download.headers.get("location")!);
     assert.equal(bytes.status, 200);
     assert.equal((await bytes.arrayBuffer()).byteLength, png.length);
+    const preview = await fetch(
+      origin + uploadData.asset.url + "&thumbnail=1",
+      { headers: { Cookie: reviewer.cookie }, redirect: "manual" },
+    );
+    assert.equal(preview.status, 302);
+    const previewBytes = await fetch(preview.headers.get("location")!);
+    assert.equal(previewBytes.status, 200);
+    assert.equal(
+      (await sharp(Buffer.from(await previewBytes.arrayBuffer())).metadata())
+        .format,
+      "webp",
+    );
     const hidden = await fetch(origin + uploadData.asset.url, {
       headers: { Cookie: outsider.cookie },
       redirect: "manual",
@@ -289,16 +321,16 @@ async function main() {
         page.getByRole("heading", { name: "Settings", exact: true }),
       ).toBeVisible({ timeout: 20000 });
       await page
-        .getByRole("button", { name: "Team & permissions", exact: true })
+        .getByRole("button", { name: /^Team & permissions$/i, exact: true })
         .click();
       await expect(
         page.getByRole("heading", {
-          name: "Team & client permissions",
+          name: /^Team & client permissions$/i,
           exact: true,
         }),
       ).toBeVisible();
       await expect(
-        page.getByRole("button", { name: "Save access", exact: true }),
+        page.getByRole("button", { name: /^Save access$/i, exact: true }),
       ).toHaveCount(2);
       await page.screenshot({
         path: "design/implemented/cloud-team-desktop.png",
@@ -306,14 +338,14 @@ async function main() {
       });
       await page.goto(origin + "/calendar");
       await page
-        .getByRole("button", { name: "Create content", exact: true })
+        .getByRole("button", { name: /^Create content$/i, exact: true })
         .click();
       const modal = page.getByRole("dialog");
-      await modal.getByLabel("Post title").fill("Live browser draft");
+      await modal.getByLabel(/Post Title/i).fill("Live browser draft");
       await modal
         .getByLabel("Caption")
         .fill("This draft was saved through the real authenticated provider.");
-      await modal.getByRole("button", { name: "Save draft" }).click();
+      await modal.getByRole("button", { name: /^Save draft$/i }).click();
       await expect(page.getByText("Saving…", { exact: true })).toHaveCount(0);
       await expect(
         page.getByText("Live browser draft", { exact: true }),
@@ -337,10 +369,10 @@ async function main() {
         page.getByRole("heading", { name: "Settings", exact: true }),
       ).toBeVisible({ timeout: 20000 });
       await page
-        .getByRole("button", { name: "Team & permissions", exact: true })
+        .getByRole("button", { name: /^Team & permissions$/i, exact: true })
         .click();
       await expect(
-        page.getByRole("button", { name: "Save access", exact: true }),
+        page.getByRole("button", { name: /^Save access$/i, exact: true }),
       ).toHaveCount(2);
       assert.ok(
         await page.evaluate(
@@ -400,7 +432,9 @@ async function main() {
     );
   } finally {
     if (path) {
-      const r = await admin.storage.from("grailhiiv-assets").remove([path]);
+      const r = await admin.storage
+        .from("grailhiiv-assets")
+        .remove([path, thumbnailPath].filter(Boolean));
       if (r.error)
         throw new Error("Test file cleanup failed: " + r.error.message);
     }

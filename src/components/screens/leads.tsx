@@ -16,8 +16,8 @@ import {
   CircleCheck,
 } from "lucide-react";
 import { useWorkspace } from "../workspace-provider";
-import { Badge, ClientMark, Empty, Field, Modal, Status } from "../ui";
-import { clientMatch, formatDate } from "@/lib/domain";
+import { Badge, ClientMark, DetailsPanel, Empty, Field, Modal, Status } from "../ui";
+import { clientMatch, formatDate, localDate } from "@/lib/domain";
 import type { Lead, LeadStage } from "@/lib/types";
 const stages: LeadStage[] = ["New", "Qualified", "Contacted", "Won"];
 const SendIcon = Mail;
@@ -28,12 +28,12 @@ export function LeadsScreen({
   adding: boolean;
   closeAdd: () => void;
 }) {
-  const { data, clientId, setClientId, update, toast, activity } =
+  const { data, clientId, setClientId, update, toast, activity, cloud } =
     useWorkspace();
   const [query, setQuery] = useState("");
   const [view, setView] = useState("Pipeline");
   const [source, setSource] = useState("all");
-  const [selectedId, setSelectedId] = useState("l2");
+  const [selectedId, setSelectedId] = useState("");
   const [note, setNote] = useState("");
   const [editingTask, setEditingTask] = useState(false);
   const leads = data.leads.filter(
@@ -85,6 +85,7 @@ export function LeadsScreen({
               <button
                 key={label as string}
                 className={view === label ? "selected" : ""}
+                aria-pressed={view === label}
                 onClick={() => setView(label as string)}
               >
                 <Component size={16} />
@@ -96,18 +97,18 @@ export function LeadsScreen({
         <label className="search-box">
           <Search size={19} />
           <input
-            aria-label="Search leads"
+            aria-label="Search Leads"
             placeholder="Search leads…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </label>
         <select
-          aria-label="CRM client"
+          aria-label="CRM Client"
           value={clientId}
           onChange={(e) => setClientId(e.target.value)}
         >
-          <option value="all">All clients</option>
+          <option value="all">All Clients</option>
           {data.clients.map((c) => (
             <option value={c.id} key={c.id}>
               {c.name}
@@ -115,11 +116,11 @@ export function LeadsScreen({
           ))}
         </select>
         <select
-          aria-label="Lead source"
+          aria-label="Lead Source"
           value={source}
           onChange={(e) => setSource(e.target.value)}
         >
-          <option value="all">All sources</option>
+          <option value="all">All Sources</option>
           {Array.from(new Set(data.leads.map((l) => l.source))).map((s) => (
             <option key={s}>{s}</option>
           ))}
@@ -201,7 +202,6 @@ export function LeadsScreen({
                               {formatDate(l.due).replace(", 2026", "")}
                             </span>
                           </div>
-                          <small>{l.interest}</small>
                         </div>
                       </button>
                     ))}
@@ -220,7 +220,7 @@ export function LeadsScreen({
                     <th>Client</th>
                     <th>Source</th>
                     <th>Stage</th>
-                    <th>Next task</th>
+                    <th>Next Task</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -229,7 +229,7 @@ export function LeadsScreen({
                       <td>
                         <button
                           className="table-link"
-                          onClick={() => setSelectedId(l.id)}
+                          onClick={() => { setSelectedId(l.id); setNote(""); }}
                         >
                           {l.name}
                         </button>
@@ -257,7 +257,7 @@ export function LeadsScreen({
                 </tbody>
               </table>
               {!leads.length && (
-                <Empty title="No matching leads">
+                <Empty title="No Matching Leads">
                   Try a different search or add your first lead.
                 </Empty>
               )}
@@ -265,7 +265,7 @@ export function LeadsScreen({
           )}
         </div>
         {selected && (
-          <aside className="panel lead-detail">
+          <DetailsPanel title="Lead Details" className="lead-detail" onClose={() => setSelectedId("")}>
             <div className="detail-top">
               <img
                 className="lead-portrait"
@@ -278,7 +278,7 @@ export function LeadsScreen({
               />
               <button
                 className="icon-button"
-                aria-label="Close lead details"
+                aria-label="Close Lead Details"
                 onClick={() => setSelectedId("")}
               >
                 <X size={20} />
@@ -289,7 +289,7 @@ export function LeadsScreen({
               {data.clients.find((c) => c.id === selected.clientId)?.name}
             </p>
             <select
-              aria-label="Lead stage"
+              aria-label="Lead Stage"
               value={selected.stage}
               onChange={(e) =>
                 changeStage(selected, e.target.value as LeadStage)
@@ -303,12 +303,12 @@ export function LeadsScreen({
               <Mail size={19} />
               <a href={`mailto:${selected.email}`}>{selected.email}</a>
             </div>
-            <div className="contact-line">
+            {!cloud && <div className="contact-line">
               <Phone size={19} />
               <span>
                 (555) 123-4567 <small>Sample</small>
               </span>
-            </div>
+            </div>}
             <div className="contact-line">
               <Building2 size={19} />
               {data.clients.find((c) => c.id === selected.clientId)?.name}
@@ -318,11 +318,11 @@ export function LeadsScreen({
               {selected.source}
             </div>
             <div className="detail-section">
-              <h3>Qualification summary</h3>
+              <h3>Qualification Summary</h3>
               <p>Interested in {selected.interest.toLowerCase()}.</p>
             </div>
             <div className="detail-section">
-              <h3>Next task</h3>
+              <h3>Next Task</h3>
               <p>
                 <CalendarDays
                   size={20}
@@ -340,19 +340,19 @@ export function LeadsScreen({
                   className="button"
                   onClick={() => document.getElementById("lead-note")?.focus()}
                 >
-                  Add note
+                  Add Note
                 </button>
                 <button
                   className="button primary"
                   onClick={() => setEditingTask(true)}
-                  aria-label="Edit follow-up"
+                  aria-label="Edit Follow-Up"
                 >
-                  Create task
+                  Edit Follow-Up
                 </button>
               </div>
             </div>
-            <div className="detail-section">
-              <h3>Activity timeline</h3>
+            {!cloud && <div className="detail-section">
+              <h3>Activity Timeline</h3>
               {[
                 ["Form submitted", Mail],
                 ["Lead qualified", CircleCheck],
@@ -369,7 +369,7 @@ export function LeadsScreen({
                   </div>
                 );
               })}
-            </div>
+            </div>}
             <div className="detail-section">
               <h3>
                 <MessageSquare size={16} />
@@ -383,7 +383,7 @@ export function LeadsScreen({
               ))}
               <textarea
                 id="lead-note"
-                aria-label="Lead note"
+                aria-label="Lead Note"
                 placeholder="Add a note…"
                 rows={3}
                 value={note}
@@ -394,10 +394,10 @@ export function LeadsScreen({
                 disabled={!note.trim()}
                 onClick={addNote}
               >
-                Save note
+                Save Note
               </button>
             </div>
-          </aside>
+          </DetailsPanel>
         )}
       </div>
       {adding && <LeadForm onClose={closeAdd} />}{" "}
@@ -412,11 +412,11 @@ function LeadForm({ onClose }: { onClose: () => void }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    clientId: clientId === "all" ? data.clients[0].id : clientId,
+    clientId: clientId === "all" ? data.clients[0]?.id || "" : clientId,
     source: "Website form",
     interest: "",
     task: "Send an introductory email",
-    due: "2026-10-09",
+    due: localDate(),
   });
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -435,9 +435,9 @@ function LeadForm({ onClose }: { onClose: () => void }) {
     onClose();
   }
   return (
-    <Modal title="Add a lead" onClose={onClose}>
+    <Modal title="Add a Lead" onClose={onClose}>
       <form onSubmit={submit}>
-        <Field label="Full name">
+        <Field label="Full Name">
           <input
             required
             maxLength={100}
@@ -484,7 +484,7 @@ function LeadForm({ onClose }: { onClose: () => void }) {
             </select>
           </Field>
         </div>
-        <Field label="What are they interested in?">
+        <Field label="What Are They Interested In?">
           <textarea
             required
             rows={3}
@@ -492,7 +492,7 @@ function LeadForm({ onClose }: { onClose: () => void }) {
             onChange={(e) => setForm({ ...form, interest: e.target.value })}
           />
         </Field>
-        <Field label="Follow-up date">
+        <Field label="Follow-Up Date">
           <input
             required
             type="date"
@@ -504,7 +504,7 @@ function LeadForm({ onClose }: { onClose: () => void }) {
           <button type="button" className="button" onClick={onClose}>
             Cancel
           </button>
-          <button className="button primary">Add lead</button>
+          <button className="button primary">Add Lead</button>
         </div>
       </form>
     </Modal>
@@ -515,7 +515,7 @@ function TaskForm({ lead, onClose }: { lead: Lead; onClose: () => void }) {
   const [task, setTask] = useState(lead.task);
   const [due, setDue] = useState(lead.due);
   return (
-    <Modal title="Edit follow-up" onClose={onClose}>
+    <Modal title="Edit Follow-Up" onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -537,7 +537,7 @@ function TaskForm({ lead, onClose }: { lead: Lead; onClose: () => void }) {
             onChange={(e) => setTask(e.target.value)}
           />
         </Field>
-        <Field label="Due date">
+        <Field label="Due Date">
           <input
             type="date"
             required
@@ -549,7 +549,7 @@ function TaskForm({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           <button className="button" type="button" onClick={onClose}>
             Cancel
           </button>
-          <button className="button primary">Save follow-up</button>
+          <button className="button primary">Save Follow-Up</button>
         </div>
       </form>
     </Modal>

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { titleLabel } from "@/lib/labels";
 import {
   ArrowRight,
   UsersRound,
@@ -17,6 +18,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { useWorkspace } from "../workspace-provider";
+import { AgentPlan } from "../agent-plan";
 import {
   AssetPreview,
   Badge,
@@ -31,6 +33,8 @@ import {
   changePostStatus,
   clientMatch,
   formatDate,
+  localDate,
+  weekDates,
   formatTime,
   monthCells,
 } from "@/lib/domain";
@@ -69,10 +73,7 @@ function PostCard({ post, edit }: { post: Post; edit: (p: Post) => void }) {
   return (
     <button className="content-card" onClick={() => edit(post)}>
       <div className="card-image">
-        <AssetPreview
-          asset={data.assets.find((a) => a.id === post.assetId)}
-          variant="overview"
-        />
+        <AssetPreview asset={data.assets.find((a) => a.id === post.assetId)} />
         <span className="image-platform">
           <Platform name={post.platform} />
         </span>
@@ -83,11 +84,11 @@ function PostCard({ post, edit }: { post: Post; edit: (p: Post) => void }) {
         </span>
         <h3>
           {post.id === "p1"
-            ? "Skincare routine for brighter skin this season ✨"
+            ? "Skincare Routine for Brighter Skin This Season ✨"
             : post.id === "p2"
-              ? "A healthier smile starts here"
+              ? "A Healthier Smile Starts Here"
               : post.id === "p3"
-                ? "Good coffee. Brighter days. ☀️"
+                ? "Good Coffee. Brighter Days. ☀️"
                 : post.title}
         </h3>
         <div className="card-meta">
@@ -101,13 +102,18 @@ function PostCard({ post, edit }: { post: Post; edit: (p: Post) => void }) {
   );
 }
 export function Overview({ create, edit }: ContentProps) {
-  const { data, clientId, update, activity, toast } = useWorkspace();
+  const { data, clientId, update, activity, toast, cloud, session } =
+    useWorkspace();
   const [plan, setPlan] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const posts = data.posts.filter((p) => clientMatch(p.clientId, clientId));
   const leads = data.leads.filter((l) => clientMatch(l.clientId, clientId));
   const clients = data.clients.filter((c) => clientMatch(c.id, clientId));
   const pending = posts.filter((p) => p.status === "Awaiting approval");
+  const currentWeek = weekDates(new Date());
+  const upcoming = posts.filter(
+    (p) => p.date >= localDate() && p.status !== "Published",
+  );
   const metrics = [
     {
       label: "Active clients",
@@ -126,8 +132,8 @@ export function Overview({ create, edit }: ContentProps) {
       value: posts.filter(
         (p) =>
           p.status === "Scheduled" &&
-          p.date >= "2026-10-08" &&
-          p.date <= "2026-10-14",
+          p.date >= currentWeek[0] &&
+          p.date <= currentWeek[6],
       ).length,
       Icon: CalendarDays,
       tone: "green",
@@ -180,12 +186,12 @@ export function Overview({ create, edit }: ContentProps) {
         {metrics.map(({ label, value, Icon, tone }) => (
           <div className="metric-card" key={label}>
             <div className="metric-top">
-              <span>{label}</span>
+              <span>{titleLabel(label)}</span>
               <span className={"metric-icon " + tone}>
                 <Icon size={24} />
               </span>
             </div>
-            <strong>{String(value).padStart(2, "0")}</strong>
+            <strong>{value}</strong>
             <ChevronRight size={15} className="metric-arrow" />
           </div>
         ))}
@@ -194,9 +200,9 @@ export function Overview({ create, edit }: ContentProps) {
         <div className="overview-main">
           <section className="panel">
             <div className="panel-heading">
-              <h2>Needs your attention</h2>
+              <h2>Needs Your Attention</h2>
               <Link href="/approvals" className="text-link">
-                View all <ArrowRight size={16} />
+                View All <ArrowRight size={16} />
               </Link>
             </div>
             {attentionClients.slice(0, 3).map((client, i) => (
@@ -261,7 +267,7 @@ export function Overview({ create, edit }: ContentProps) {
                   }
                 >
                   {client.id === "northside"
-                    ? "Open lead"
+                    ? "Open Lead"
                     : client.id === "bloom"
                       ? "Reconnect"
                       : "Review"}
@@ -269,21 +275,20 @@ export function Overview({ create, edit }: ContentProps) {
               </div>
             ))}
             {!attentionClients.length && (
-              <Empty title="You’re all caught up">
+              <Empty title="You’re All Caught Up">
                 No content is waiting for your approval.
               </Empty>
             )}
           </section>
           <section className="panel upcoming">
             <div className="panel-heading">
-              <h2>Upcoming content</h2>
+              <h2>Upcoming Content</h2>
               <Link className="text-link" href="/calendar">
-                View calendar <ArrowRight size={16} />
+                View Calendar <ArrowRight size={16} />
               </Link>
             </div>
             <div className="content-grid">
-              {posts
-                .filter((p) => p.date && p.status !== "Published")
+              {upcoming
                 .sort((a, b) =>
                   (a.date + a.time).localeCompare(b.date + b.time),
                 )
@@ -292,10 +297,10 @@ export function Overview({ create, edit }: ContentProps) {
                   <PostCard key={p.id} post={p} edit={edit} />
                 ))}
             </div>
-            {!posts.some((p) => p.date && p.status !== "Published") && (
-              <Empty title="A fresh calendar">
+            {!upcoming.length && (
+              <Empty title="A Fresh Calendar">
                 <button className="button" onClick={() => create()}>
-                  Create your first post
+                  Create Your First Post
                 </button>
               </Empty>
             )}
@@ -306,7 +311,7 @@ export function Overview({ create, edit }: ContentProps) {
             <div className="panel-heading">
               <h2>
                 <Sparkles size={23} />
-                AI assistant
+                AI Assistant
               </h2>
               <Ellipsis size={18} />
             </div>
@@ -316,30 +321,37 @@ export function Overview({ create, edit }: ContentProps) {
                 <strong>
                   {dismissed
                     ? "Ready when you are."
-                    : "Bloom Wellness has no posts scheduled next week. Draft a 5-post plan?"}
+                    : cloud
+                      ? "Draft a five-post plan for your client?"
+                      : "Bloom Wellness has no posts scheduled next week. Draft a 5-post plan?"}
                 </strong>
                 <p>
-                  I can create a tailored plan with post ideas, captions and
-                  relevant hashtags based on your recent content.
+                  {cloud
+                    ? "Generate captions using your client's brand voice and audience, then review them before creating drafts."
+                    : "I can create a tailored plan with post ideas, captions and relevant hashtags based on your recent content."}
                 </p>
                 <div>
                   <button
                     className="button primary"
                     onClick={() => setPlan(true)}
                   >
-                    Draft plan
+                    Draft Plan
                   </button>
                   <button className="button" onClick={() => setDismissed(true)}>
-                    Not now
+                    Not Now
                   </button>
                 </div>
-                <small>Template preview · AI not connected</small>
+                <small>
+                  {cloud
+                    ? "AI content plans · Human review before saving"
+                    : "Template preview · AI not connected"}
+                </small>
               </div>
             </div>
           </section>
           <section className="panel">
             <div className="panel-heading">
-              <h2>Recent activity</h2>
+              <h2>Recent Activity</h2>
               <button
                 className="text-link"
                 onClick={() =>
@@ -350,7 +362,7 @@ export function Overview({ create, edit }: ContentProps) {
                     ?.click()
                 }
               >
-                View all <ArrowRight size={16} />
+                View All <ArrowRight size={16} />
               </button>
             </div>
             <div className="activity-list">
@@ -391,9 +403,9 @@ export function Overview({ create, edit }: ContentProps) {
       </div>
       <section className="panel">
         <div className="panel-heading">
-          <h2>Lead pipeline</h2>
+          <h2>Lead Pipeline</h2>
           <Link className="text-link" href="/leads">
-            View all leads <ArrowRight size={16} />
+            View All Leads <ArrowRight size={16} />
           </Link>
         </div>
         <div className="pipeline-summary">
@@ -429,35 +441,43 @@ export function Overview({ create, edit }: ContentProps) {
           ))}
         </div>
       </section>
-      {plan && (
-        <Modal title="Draft a content plan" onClose={() => setPlan(false)}>
-          <p className="muted">
-            Create five editable draft ideas for{" "}
-            <strong>
-              {
-                data.clients.find(
-                  (c) => c.id === (clientId === "all" ? "bloom" : clientId),
-                )?.name
-              }
-            </strong>
-            . This uses starter templates, not a connected AI model.
-          </p>
-          <div className="modal-footer">
-            <button className="button" onClick={() => setPlan(false)}>
-              Cancel
-            </button>
-            <button className="button primary" onClick={generatePlan}>
-              Create 5 draft ideas
-            </button>
-          </div>
-        </Modal>
-      )}
+      {plan &&
+        (cloud ? (
+          <AgentPlan
+            key={session?.workspaceId}
+            onClose={() => setPlan(false)}
+          />
+        ) : (
+          <Modal title="Draft a Content Plan" onClose={() => setPlan(false)}>
+            <>
+              <p className="muted">
+                Create five editable draft ideas for{" "}
+                <strong>
+                  {
+                    data.clients.find(
+                      (c) => c.id === (clientId === "all" ? "bloom" : clientId),
+                    )?.name
+                  }
+                </strong>
+                . This uses starter templates, not a connected AI model.
+              </p>
+              <div className="modal-footer">
+                <button className="button" onClick={() => setPlan(false)}>
+                  Cancel
+                </button>
+                <button className="button primary" onClick={generatePlan}>
+                  Create 5 Draft Ideas
+                </button>
+              </div>
+            </>
+          </Modal>
+        ))}
     </>
   );
 }
 export function CalendarScreen({ create, edit }: ContentProps) {
   const { data, clientId, status } = useContent();
-  const [month, setMonth] = useState(new Date(2026, 9, 1));
+  const [month, setMonth] = useState(() => new Date());
   const [view, setView] = useState("Month");
   const [platform, setPlatform] = useState("all");
   const [filter, setFilter] = useState("all");
@@ -469,10 +489,26 @@ export function CalendarScreen({ create, edit }: ContentProps) {
       (filter === "all" || p.status === filter),
   );
   const current = selected
-    ? data.posts.find((p) => p.id === selected.id)
+    ? posts.find((p) => p.id === selected.id)
     : undefined;
   const datePrefix = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
   const cells = monthCells(month.getFullYear(), month.getMonth());
+  const week = weekDates(month);
+  const today = localDate();
+  const visibleCells = view === "Week" ? week : cells;
+  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+  const monthOffset = (firstDay.getDay() + 6) % 7;
+  function navigate(direction: number) {
+    setMonth(
+      view === "Week"
+        ? new Date(
+            month.getFullYear(),
+            month.getMonth(),
+            month.getDate() + direction * 7,
+          )
+        : new Date(month.getFullYear(), month.getMonth() + direction, 1),
+    );
+  }
   const calendarPost = (p: Post) => (
     <button
       className={"calendar-post " + p.status.toLowerCase().replaceAll(" ", "-")}
@@ -486,7 +522,10 @@ export function CalendarScreen({ create, edit }: ContentProps) {
         />
         <div>
           <Platform name={p.platform} />
-          <span className="calendar-client">
+          <span
+            className="calendar-client"
+            title={data.clients.find((c) => c.id === p.clientId)?.name}
+          >
             {data.clients.find((c) => c.id === p.clientId)?.name}
           </span>
           <strong>{p.title}</strong>
@@ -504,25 +543,23 @@ export function CalendarScreen({ create, edit }: ContentProps) {
         <div className="month-controls">
           <button
             className="icon-button bordered"
-            aria-label="Previous month"
-            onClick={() =>
-              setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))
-            }
+            aria-label={view === "Week" ? "Previous Week" : "Previous Month"}
+            onClick={() => navigate(-1)}
           >
             <ChevronLeft size={18} />
           </button>
           <h2>
-            {month.toLocaleDateString("en-US", {
-              month: "long",
-              year: "numeric",
-            })}
+            {view === "Week"
+              ? `${formatDate(week[0])} – ${formatDate(week[6])}`
+              : month.toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
           </h2>
           <button
             className="icon-button bordered"
-            aria-label="Next month"
-            onClick={() =>
-              setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))
-            }
+            aria-label={view === "Week" ? "Next Week" : "Next Month"}
+            onClick={() => navigate(1)}
           >
             <ChevronRight size={18} />
           </button>
@@ -538,6 +575,7 @@ export function CalendarScreen({ create, edit }: ContentProps) {
             {["Month", "Week", "List"].map((v) => (
               <button
                 className={view === v ? "selected" : ""}
+                aria-pressed={view === v}
                 key={v}
                 onClick={() => setView(v)}
               >
@@ -546,21 +584,21 @@ export function CalendarScreen({ create, edit }: ContentProps) {
             ))}
           </div>
           <select
-            aria-label="Filter platform"
+            aria-label="Filter Platform"
             value={platform}
             onChange={(e) => setPlatform(e.target.value)}
           >
-            <option value="all">All platforms</option>
+            <option value="all">All Platforms</option>
             {["Instagram", "Facebook", "LinkedIn"].map((p) => (
               <option key={p}>{p}</option>
             ))}
           </select>
           <select
-            aria-label="Filter status"
+            aria-label="Filter Status"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
-            <option value="all">All statuses</option>
+            <option value="all">All Statuses</option>
             {[
               "Draft",
               "Awaiting approval",
@@ -568,13 +606,20 @@ export function CalendarScreen({ create, edit }: ContentProps) {
               "Scheduled",
               "Published",
             ].map((s) => (
-              <option key={s}>{s}</option>
+              <option key={s} value={s}>
+                {titleLabel(s)}
+              </option>
             ))}
           </select>
         </div>
       </div>
       <div className="calendar-layout">
         <section className="panel calendar-panel">
+          {view !== "List" && (
+            <p className="calendar-scroll-note">
+              Scroll horizontally to see all seven days.
+            </p>
+          )}
           {view !== "List" ? (
             <>
               <div className="calendar-weekdays">
@@ -583,38 +628,40 @@ export function CalendarScreen({ create, edit }: ContentProps) {
                 ))}
               </div>
               <div className="calendar-grid">
-                {(view === "Week" ? cells.slice(7, 14) : cells).map(
-                  (date, i) => (
-                    <div
-                      className={
-                        "calendar-cell " +
-                        (!date ? "outside" : "") +
-                        (date === "2026-10-08" ? " today" : "")
-                      }
-                      key={date || i}
-                    >
-                      {date ? (
-                        <>
-                          <button
-                            className="day-number"
-                            aria-label={`Create content on ${date}`}
-                            onClick={() => create(date)}
-                          >
-                            {Number(date.slice(-2))}
-                          </button>
-                          {posts
-                            .filter((p) => p.date === date)
-                            .sort((a, b) => a.time.localeCompare(b.time))
-                            .map(calendarPost)}
-                        </>
-                      ) : (
-                        <span className="day-number muted">
-                          {i < 3 ? 28 + i : 1}
-                        </span>
-                      )}
-                    </div>
-                  ),
-                )}
+                {visibleCells.map((date, i) => (
+                  <div
+                    className={
+                      "calendar-cell " +
+                      (!date ? "outside" : "") +
+                      (date === today ? " today" : "")
+                    }
+                    key={date || i}
+                  >
+                    {date ? (
+                      <>
+                        <button
+                          className="day-number"
+                          aria-label={`Create Content on ${date}`}
+                          onClick={() => create(date)}
+                        >
+                          {Number(date.slice(-2))}
+                        </button>
+                        {posts
+                          .filter((p) => p.date === date)
+                          .sort((a, b) => a.time.localeCompare(b.time))
+                          .map(calendarPost)}
+                      </>
+                    ) : (
+                      <span className="day-number muted">
+                        {new Date(
+                          month.getFullYear(),
+                          month.getMonth(),
+                          i - monthOffset + 1,
+                        ).getDate()}
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
             </>
           ) : (
@@ -634,9 +681,14 @@ export function CalendarScreen({ create, edit }: ContentProps) {
                     .filter((p) => p.date.startsWith(datePrefix))
                     .sort((a, b) => a.date.localeCompare(b.date))
                     .map((p) => (
-                      <tr key={p.id} onClick={() => setSelected(p)}>
+                      <tr key={p.id}>
                         <td>
-                          <button className="table-link">{p.title}</button>
+                          <button
+                            className="table-link"
+                            onClick={() => setSelected(p)}
+                          >
+                            {p.title}
+                          </button>
                         </td>
                         <td>
                           {data.clients.find((c) => c.id === p.clientId)?.name}
@@ -655,18 +707,17 @@ export function CalendarScreen({ create, edit }: ContentProps) {
                 </tbody>
               </table>
               {!posts.some((p) => p.date.startsWith(datePrefix)) && (
-                <Empty title="No content this month">
+                <Empty title="No Content This Month">
                   Choose another month or create a new draft.
                 </Empty>
               )}
             </div>
           )}
         </section>
-        <aside className="panel ideas-panel">
+        <aside className="panel ideas-panel" id="unscheduled-ideas">
           <div className="panel-heading">
-            <h2>Unscheduled ideas</h2>
+            <h2>Unscheduled Ideas</h2>
           </div>
-          <p className="muted small-text">Timezone: Asia/Singapore</p>
           {posts
             .filter((p) => !p.date)
             .sort((a, b) =>
@@ -686,14 +737,14 @@ export function CalendarScreen({ create, edit }: ContentProps) {
                 </div>
               </button>
             ))}
-          {!posts.some((p) => !p.date) && <Empty title="Room for a new idea" />}
+          {!posts.some((p) => !p.date) && <Empty title="Room for a New Idea" />}
           <button className="button full" onClick={() => create()}>
-            + Add an idea
+            + Add an Idea
           </button>
         </aside>
       </div>
       {current && (
-        <Modal title="Content details" onClose={() => setSelected(null)} wide>
+        <Modal title="Content Details" onClose={() => setSelected(null)} wide>
           <div className="post-detail">
             <AssetPreview
               asset={data.assets.find((a) => a.id === current.assetId)}
@@ -726,7 +777,7 @@ export function CalendarScreen({ create, edit }: ContentProps) {
                 }}
               >
                 <Pencil size={15} />
-                Edit draft
+                Edit Draft
               </button>
             )}
             {(current.status === "Draft" ||
@@ -739,7 +790,7 @@ export function CalendarScreen({ create, edit }: ContentProps) {
                 }}
               >
                 <Send size={15} />
-                Submit for approval
+                Submit for Approval
               </button>
             )}
           </div>
@@ -834,11 +885,14 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
       <div className="toolbar">
         <div className="approval-filters">
           <select
-            aria-label="Approval client"
+            aria-label="Approval Client"
             value={clientId}
-            onChange={(e) => setClientId(e.target.value)}
+            onChange={(e) => {
+              setClientId(e.target.value);
+              setFeedback("");
+            }}
           >
-            <option value="all">All clients</option>
+            <option value="all">All Clients</option>
             {data.clients.map((c) => (
               <option value={c.id} key={c.id}>
                 {c.name}
@@ -846,11 +900,14 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
             ))}
           </select>
           <select
-            aria-label="Approval platform"
+            aria-label="Approval Platform"
             value={platform}
-            onChange={(e) => setPlatform(e.target.value)}
+            onChange={(e) => {
+              setPlatform(e.target.value);
+              setFeedback("");
+            }}
           >
-            <option value="all">All platforms</option>
+            <option value="all">All Platforms</option>
             {["Instagram", "Facebook", "LinkedIn"].map((p) => (
               <option key={p}>{p}</option>
             ))}
@@ -860,6 +917,7 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
           {["Pending", "Approved", "Changes requested"].map((t) => (
             <button
               className={tab === t ? "selected" : ""}
+              aria-pressed={tab === t}
               key={t}
               onClick={() => {
                 setTab(t);
@@ -867,7 +925,7 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                 setFeedback("");
               }}
             >
-              {t}
+              {titleLabel(t)}
               <span>
                 {
                   data.posts.filter(
@@ -928,14 +986,16 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                 </h2>
                 <Platform name={selected.platform} />
               </div>
-              <div className="approval-submission">
-                <Badge>Version 2</Badge>
-                <div>
-                  Submitted by Jamie Park
-                  <small>Oct 8, 2026 · 2:14 PM · Sample</small>
+              {!cloud && selected.id === "p3" && (
+                <div className="approval-submission">
+                  <Badge>Version 2</Badge>
+                  <div>
+                    Submitted by Jamie Park
+                    <small>Oct 8, 2026 · 2:14 PM · Sample</small>
+                  </div>
+                  <img src="/media/mockup/jamie-avatar.png" alt="" />
                 </div>
-                <img src="/media/mockup/jamie-avatar.png" alt="" />
-              </div>
+              )}
             </div>
             <div className="approval-review">
               <div className="social-preview">
@@ -945,25 +1005,26 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                 />
               </div>
               <div className="review-content">
-                <h3>Post caption</h3>
+                <h3>Post Caption</h3>
                 <p className="caption-box">{selected.caption}</p>
-                <h3>Tags</h3>
-                <div className="review-tags">
-                  {[
-                    "#coastalstudio",
-                    "#coffee",
-                    "#coastlife",
-                    "#weekendvibes",
-                  ].map((tag) => (
-                    <span key={tag}>{tag}</span>
-                  ))}
-                </div>
-                <h3>Publishing date</h3>
+                {selected.caption.match(/#[\p{L}\p{N}_]+/gu)?.length ? (
+                  <>
+                    <h3>Tags</h3>
+                    <div className="review-tags">
+                      {Array.from(
+                        new Set(selected.caption.match(/#[\p{L}\p{N}_]+/gu)),
+                      ).map((tag) => (
+                        <span key={tag}>{tag}</span>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+                <h3>Publishing Date</h3>
                 <div className="schedule-detail">
                   <CalendarClock size={22} />
                   {formatDate(selected.date)} · {formatTime(selected.time)}
                 </div>
-                <h3 className="review-notes-title">Review notes</h3>
+                <h3 className="review-notes-title">Review Notes</h3>
                 {!cloud &&
                   selected.id === "p3" &&
                   demoNotes.map(([name, date, text, avatar], i) => (
@@ -997,7 +1058,7 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
             </div>
             <div className="feedback-row">
               <img src="/media/mockup/reviewer-avatar.png" alt="" />
-              <Field label="Add feedback">
+              <Field label="Add Feedback">
                 <textarea
                   rows={1}
                   value={feedback}
@@ -1010,7 +1071,7 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                   className="button compact"
                   onClick={() => addFeedback()}
                 >
-                  Add note
+                  Add Note
                 </button>
               )}
             </div>
@@ -1021,7 +1082,7 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                 onClick={() => edit(selected)}
               >
                 <Pencil size={15} />
-                Edit content
+                Edit Content
               </button>
               <div>
                 {tab === "Pending" &&
@@ -1031,13 +1092,13 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                         className="button"
                         onClick={() => addFeedback(true)}
                       >
-                        Request changes
+                        Request Changes
                       </button>
                       <button
                         className="button primary"
                         onClick={() => status(selected, "Scheduled")}
                       >
-                        Approve & schedule
+                        Approve & Schedule
                       </button>
                     </>
                   )}
@@ -1047,7 +1108,7 @@ export function Approvals({ edit }: { edit: (p: Post) => void }) {
                       className="button primary"
                       onClick={() => status(selected, "Awaiting approval")}
                     >
-                      Resubmit for approval
+                      Resubmit for Approval
                     </button>
                   )}
               </div>

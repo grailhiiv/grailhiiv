@@ -11,10 +11,11 @@ import {
   List,
 } from "lucide-react";
 import { useWorkspace } from "../workspace-provider";
-import { AssetPreview, Empty, Field, Modal, Status } from "../ui";
+import { AssetPreview, DetailsPanel, Empty, Field, Modal, Status } from "../ui";
 import { loadFile, saveFile } from "@/lib/assets";
 import { clientMatch } from "@/lib/domain";
 import type { Asset } from "@/lib/types";
+import { titleLabel } from "@/lib/labels";
 export function AssetsScreen({
   createFromAsset,
 }: {
@@ -31,14 +32,14 @@ export function AssetsScreen({
     session,
     refresh,
   } = useWorkspace();
-  const [selectedId, setSelectedId] = useState("coffee");
+  const [selectedId, setSelectedId] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All assets");
   const [type, setType] = useState("all");
   const [view, setView] = useState("Grid");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [uploadClient, setUploadClient] = useState(
-    clientId === "all" ? data.clients[0].id : clientId,
+    clientId === "all" ? data.clients[0]?.id || "" : clientId,
   );
   const [busy, setBusy] = useState(false);
   const assets = data.assets.filter(
@@ -55,7 +56,7 @@ export function AssetsScreen({
       (type === "all" || a.type.startsWith(type)) &&
       (filter !== "Brand kits" || a.tags.includes("Brand kit")),
   );
-  const selected = assets.find((a) => a.id === selectedId) || assets[0];
+  const selected = assets.find((a) => a.id === selectedId);
   async function upload() {
     setBusy(true);
     try {
@@ -150,7 +151,7 @@ export function AssetsScreen({
         onChange={(e) => {
           if (e.target.files?.length) {
             setPendingFiles(Array.from(e.target.files));
-            setUploadClient(clientId === "all" ? data.clients[0].id : clientId);
+            setUploadClient(clientId === "all" ? data.clients[0]?.id || "" : clientId);
           }
           e.target.value = "";
         }}
@@ -170,7 +171,7 @@ export function AssetsScreen({
               onClick={() => setFilter(f)}
             >
               <FolderOpen size={19} />
-              {f}
+              {titleLabel(f)}
             </button>
           ))}
         </aside>
@@ -179,18 +180,18 @@ export function AssetsScreen({
             <label className="search-box">
               <Search size={18} />
               <input
-                aria-label="Search assets"
+                aria-label="Search Assets"
                 placeholder="Search assets…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
             </label>
             <select
-              aria-label="Asset client"
+              aria-label="Asset Client"
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
             >
-              <option value="all">All clients</option>
+              <option value="all">All Clients</option>
               {data.clients.map((c) => (
                 <option value={c.id} key={c.id}>
                   {c.name}
@@ -198,11 +199,11 @@ export function AssetsScreen({
               ))}
             </select>
             <select
-              aria-label="Asset type"
+              aria-label="Asset Type"
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
-              <option value="all">All types</option>
+              <option value="all">All Types</option>
               <option value="image/">Images</option>
               <option value="video/">Videos</option>
               <option value="application/pdf">PDFs</option>
@@ -210,6 +211,7 @@ export function AssetsScreen({
             <div className="segmented">
               <button
                 className={view === "Grid" ? "selected" : ""}
+                aria-pressed={view === "Grid"}
                 onClick={() => setView("Grid")}
               >
                 <Grid2X2 size={15} />
@@ -217,6 +219,7 @@ export function AssetsScreen({
               </button>
               <button
                 className={view === "List" ? "selected" : ""}
+                aria-pressed={view === "List"}
                 onClick={() => setView("List")}
               >
                 <List size={15} />
@@ -253,13 +256,13 @@ export function AssetsScreen({
             ))}
           </div>
           {!assets.length && (
-            <Empty title="No matching assets">
+            <Empty title="No Matching Assets">
               Upload a file or try a different filter.
             </Empty>
           )}
         </section>
         {selected && (
-          <aside className="panel asset-detail">
+          <DetailsPanel title="Asset Details" className="asset-detail" onClose={() => setSelectedId("")}>
             <AssetPreview asset={selected} variant="detail" />
             <h2>{selected.name}</h2>
             <dl>
@@ -284,14 +287,10 @@ export function AssetsScreen({
               <dd>
                 <Status value={selected.status} />
               </dd>
-              <dt>Uploaded by</dt>
-              <dd>Sam Lee</dd>
               <dt>Storage</dt>
               <dd>
-                {selected.uploaded ? "This browser" : "Mockup sample crop"}
+                {selected.storagePath ? "Private cloud storage" : selected.uploaded ? "This browser" : "Demo asset"}
               </dd>
-              <dt>Original file name</dt>
-              <dd>{selected.name}</dd>
             </dl>
             <div className="detail-section">
               <h3>Tags</h3>
@@ -304,10 +303,8 @@ export function AssetsScreen({
               </div>
             </div>
             <div className="detail-section">
-              <h3>Used in</h3>
+              <h3>Used In</h3>
               <div className="asset-used">
-                <img src={selected.url || "/media/mockup/coffee.png"} alt="" />
-                <img src="/media/mockup/coast.png" alt="" />
                 <p>
                   Used in{" "}
                   {data.posts.filter((p) => p.assetId === selected.id).length}{" "}
@@ -330,27 +327,30 @@ export function AssetsScreen({
                   }}
                 >
                   <Check size={16} />
-                  Approve asset
+                  Approve Asset
                 </button>
               )}
             <button
               className="button primary full"
               disabled={session?.role === "client_reviewer"}
-              onClick={() => createFromAsset(selected)}
+              onClick={() => {
+                setSelectedId("");
+                createFromAsset(selected);
+              }}
             >
               <ImagePlus size={18} />
-              Use in content
+              Use in Content
             </button>
             <button className="button full" onClick={download}>
               <Download size={18} />
               Download
             </button>
-          </aside>
+          </DetailsPanel>
         )}
       </div>
       {pendingFiles.length > 0 && (
         <Modal
-          title="Upload assets"
+          title="Upload Assets"
           onClose={() => {
             if (!busy) setPendingFiles([]);
           }}
@@ -386,8 +386,8 @@ export function AssetsScreen({
             >
               Cancel
             </button>
-            <button className="button primary" disabled={busy} onClick={upload}>
-              {busy ? "Saving…" : "Save assets"}
+            <button className="button primary" disabled={busy || !uploadClient} onClick={upload}>
+              {busy ? "Saving…" : "Save Assets"}
             </button>
           </div>
         </Modal>

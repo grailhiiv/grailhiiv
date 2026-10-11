@@ -96,6 +96,8 @@ export const schemas = {
       tags: z.array(text).max(100),
       uploaded: z.boolean(),
       storagePath: text.optional(),
+      thumbnailPath: text.optional(),
+      thumbnailSize: z.number().int().min(1).max(131072).optional(),
       variants: z
         .object({
           overview: text.optional(),
@@ -109,6 +111,7 @@ export const schemas = {
     })
     .strict()
     .superRefine((asset, ctx) => {
+      if (Boolean(asset.thumbnailPath) !== Boolean(asset.thumbnailSize) || (!asset.uploaded && asset.thumbnailPath)) ctx.addIssue({ code: "custom", message: "Thumbnail metadata requires an uploaded asset and a size." });
       if (!asset.uploaded && asset.storagePath !== undefined)
         ctx.addIssue({
           code: "custom",
@@ -180,4 +183,8 @@ export function validateAssetStorage(
     [".", ".."].includes(parts[2])
   )
     throw new Error("Asset storage path does not belong to this client.");
+  if (asset.thumbnailPath) {
+    const thumbnail = asset.thumbnailPath.split("/");
+    if (thumbnail.length !== 3 || thumbnail[0] !== workspaceId || thumbnail[1] !== asset.clientId || !/^[a-zA-Z0-9_-]+-thumb\.webp$/.test(thumbnail[2])) throw new Error("Thumbnail does not belong to this client.");
+  }
 }

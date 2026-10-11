@@ -15,23 +15,23 @@ test("short landscape navigation and narrow-phone forms remain usable", async ({
 }) => {
   await page.setViewportSize({ width: 820, height: 360 });
   await page.goto("/");
-  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Open Navigation" }).click();
   await page.getByRole("link", { name: "Settings", exact: true }).click();
   await expect(page.locator("h1")).toHaveText("Settings");
   await page.setViewportSize({ width: 320, height: 568 });
   await page.goto("/calendar");
   await page
-    .getByRole("button", { name: "Create content", exact: true })
+    .getByRole("button", { name: "Create Content", exact: true })
     .click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   expect(
     await dialog
-      .getByLabel("Post title")
+      .getByLabel("Post Title")
       .evaluate((el) => getComputedStyle(el).fontSize),
   ).toBe("16px");
-  await dialog.getByLabel("Post title").fill("Readable mobile draft");
-  await dialog.getByRole("button", { name: "Save draft" }).click();
+  await dialog.getByLabel("Post Title").fill("Readable mobile draft");
+  await dialog.getByRole("button", { name: "Save Draft" }).click();
   await expect(dialog).toBeHidden();
   expect(
     await page.evaluate(
@@ -89,13 +89,13 @@ for (const width of [
       });
     }
     if (width <= 1024) {
-      await page.getByRole("button", { name: "Open navigation" }).click();
+      await page.getByRole("button", { name: "Open Navigation" }).click();
       await expect(
-        page.getByRole("navigation", { name: "Main navigation" }),
+        page.getByRole("navigation", { name: "Main Navigation" }),
       ).toBeVisible();
       await page.getByRole("link", { name: "Overview", exact: true }).click();
       await expect(
-        page.getByRole("navigation", { name: "Main navigation" }),
+        page.getByRole("navigation", { name: "Main Navigation" }),
       ).toBeHidden();
     }
   });

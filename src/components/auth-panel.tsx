@@ -44,12 +44,12 @@ export function AuthPanel({ password = false }: { password?: boolean }) {
         </a>
         <h1>
           {mode === "login"
-            ? "Sign in to your workspace"
+            ? "Sign in to Your Workspace"
             : mode === "signup"
-              ? "Create your account"
+              ? "Create Your Account"
               : mode === "recover"
-                ? "Recover your password"
-                : "Set your password"}
+                ? "Recover Your Password"
+                : "Set Your Password"}
         </h1>
         <p>Manage your clients, content and approvals together.</p>
         <form
@@ -108,14 +108,14 @@ export function AuthPanel({ password = false }: { password?: boolean }) {
           )}
           <button className="primary-button" disabled={busy}>
             {busy
-              ? "Please wait…"
+              ? "Please Wait…"
               : mode === "login"
-                ? "Sign in"
+                ? "Sign In"
                 : mode === "signup"
-                  ? "Create account"
+                  ? "Create Account"
                   : mode === "recover"
-                    ? "Send recovery email"
-                    : "Save password"}
+                    ? "Send Recovery Email"
+                    : "Save Password"}
           </button>
         </form>
         <div role="status">{message}</div>
@@ -127,7 +127,7 @@ export function AuthPanel({ password = false }: { password?: boolean }) {
                 setMessage("");
               }}
             >
-              {mode === "login" ? "Create an account" : "Back to sign in"}
+              {mode === "login" ? "Create an Account" : "Back to Sign In"}
             </button>
             <button
               onClick={() => {
@@ -135,7 +135,7 @@ export function AuthPanel({ password = false }: { password?: boolean }) {
                 setMessage("");
               }}
             >
-              Forgot password?
+              Forgot Password?
             </button>
           </div>
         )}
@@ -181,7 +181,7 @@ export function WorkspaceOnboarding({
           }}
         >
           <label>
-            Workspace name
+            Workspace Name
             <input
               name="name"
               required
@@ -190,7 +190,7 @@ export function WorkspaceOnboarding({
             />
           </label>
           <button className="primary-button" disabled={busy}>
-            Create workspace
+            Create Workspace
           </button>
         </form>
         <p role="status">{message}</p>
@@ -200,7 +200,7 @@ export function WorkspaceOnboarding({
             window.location.assign("/login");
           }}
         >
-          Sign out
+          Sign Out
         </button>
       </section>
     </main>

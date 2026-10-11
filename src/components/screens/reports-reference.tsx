@@ -1,4 +1,5 @@
 "use client";
+import { titleLabel } from "@/lib/labels";
 import { useState } from "react";
 import {
   ChartNoAxesCombined,
@@ -8,19 +9,19 @@ import {
   Heart,
   FileCheck2,
   Download,
-  CalendarDays,
-  Link2,
   Filter,
 } from "lucide-react";
 import { useWorkspace } from "../workspace-provider";
-import { AssetPreview, Badge, Empty, Platform } from "../ui";
-import { clientMatch, csv } from "@/lib/domain";
+import { AssetPreview, Empty, Platform } from "../ui";
+import { clientMatch, csv, localDate } from "@/lib/domain";
 import { downloadFile } from "@/lib/assets";
 export function ReportsScreen() {
-  const { data, clientId, setClientId, toast } = useWorkspace();
-  const [period, setPeriod] = useState("2026-09");
+  const { data, clientId, setClientId, toast, cloud } = useWorkspace();
+  const [period, setPeriod] = useState(() => data.posts.filter(p => p.status === "Published").map(p => p.date.slice(0, 7)).sort().at(-1) || localDate().slice(0, 7));
   const [platform, setPlatform] = useState("all");
-  const [compare, setCompare] = useState("Previous period");
+  const periodDate = new Date(period + "-01T12:00:00");
+  const periodLabel = periodDate.toLocaleDateString("en-US", { month: "short" });
+  const periodDays = new Date(periodDate.getFullYear(), periodDate.getMonth() + 1, 0).getDate();
   const posts = data.posts.filter(
     (p) =>
       p.status === "Published" &&
@@ -45,7 +46,7 @@ export function ReportsScreen() {
   function exportReport() {
     downloadFile(
       csv([
-        ["GrailHiiv demo report", "Period", period],
+        ["GrailHiiv report", "Period", period],
         [
           "Title",
           "Client",
@@ -67,7 +68,7 @@ export function ReportsScreen() {
       ]),
       `grailhiiv-report-${period}.csv`,
     );
-    toast("Demo report exported");
+    toast("Report exported");
   }
   const metrics = [
     ["Reach", reach.toLocaleString(), Eye],
@@ -79,30 +80,27 @@ export function ReportsScreen() {
     ["New leads", leads, UsersRound],
     ["Posts published", posts.length, FileCheck2],
   ] as const;
-  const sourceImages = [
-    "report-cafe",
-    "report-villas",
-    "report-interior",
-    "report-resort",
-  ];
+  const strongest = [...posts].sort((a, b) => (b.metrics?.engagements || 0) - (a.metrics?.engagements || 0))[0];
   return (
     <>
       <button
         className="visually-hidden"
         id="export-report"
+        aria-hidden="true"
+        tabIndex={-1}
         onClick={exportReport}
       >
-        Export demo report
+        Download Filtered Records
       </button>
       <div className="panel report-filters">
         <label>
           Client
           <select
-            aria-label="Report client"
+            aria-label="Report Client"
             value={clientId}
             onChange={(e) => setClientId(e.target.value)}
           >
-            <option value="all">All clients</option>
+            <option value="all">All Clients</option>
             {data.clients.map((c) => (
               <option value={c.id} key={c.id}>
                 {c.name}
@@ -111,61 +109,39 @@ export function ReportsScreen() {
           </select>
         </label>
         <label>
-          Date range
+          Month
           <input
             type="month"
-            aria-label="Reporting period"
+            aria-label="Reporting Period"
             value={period}
-            onChange={(e) => setPeriod(e.target.value)}
+            onChange={(e) => { if (e.target.value) setPeriod(e.target.value); }}
           />
         </label>
         <label>
           Platforms
           <select
-            aria-label="Report platform"
+            aria-label="Report Platform"
             value={platform}
             onChange={(e) => setPlatform(e.target.value)}
           >
-            <option value="all">All platforms</option>
+            <option value="all">All Platforms</option>
             {["Instagram", "Facebook", "LinkedIn"].map((p) => (
               <option key={p}>{p}</option>
             ))}
           </select>
         </label>
-        <label>
-          Compare
-          <select
-            aria-label="Compare period"
-            value={compare}
-            onChange={(e) => setCompare(e.target.value)}
-          >
-            <option>Previous period</option>
-            <option>No comparison</option>
-          </select>
-        </label>
       </div>
+      {!cloud && <p className="report-source-note">Sample analytics · no social accounts connected</p>}
       <div className="metric-grid">
         {metrics.map(([label, value, Icon]) => (
           <div className="metric-card" key={label}>
             <div className="metric-top">
-              <span>{label}</span>
+              <span>{titleLabel(label)}</span>
               <span className="metric-icon">
                 <Icon size={23} />
               </span>
             </div>
             <strong>{value}</strong>
-            <small>Sample analytics · not synced</small>
-            <svg className="sparkline" viewBox="0 0 115 42" aria-hidden="true">
-              <path
-                d="M0 35L14 31L24 25L34 27L46 26L62 21L78 17L87 13L101 11L114 8L114 42L0 42Z"
-                fill="#eaf6f5"
-              />
-              <path
-                d="M0 35L14 31L24 25L34 27L46 26L62 21L78 17L87 13L101 11L114 8"
-                stroke="#008b81"
-                fill="none"
-              />
-            </svg>
           </div>
         ))}
       </div>
@@ -176,7 +152,7 @@ export function ReportsScreen() {
               <div className="panel-heading">
                 <h2>
                   <ChartNoAxesCombined size={23} />
-                  Reach trend
+                  Reach Trend
                 </h2>
                 <span className="chart-legend">
                   <i />
@@ -246,7 +222,7 @@ export function ReportsScreen() {
                         {n.toLocaleString()}
                       </text>
                       <text x={70 + i * 200} y="210" textAnchor="middle">
-                        Sep {i * 7 + 1}–{i === 3 ? 30 : (i + 1) * 7}
+                        {periodLabel} {i * 7 + 1}–{i === 3 ? periodDays : (i + 1) * 7}
                       </text>
                     </g>
                   ))}
@@ -257,7 +233,7 @@ export function ReportsScreen() {
               <div className="panel-heading">
                 <h2>
                   <ChartNoAxesCombined size={23} />
-                  Platform comparison
+                  Platform Comparison
                 </h2>
               </div>
               <div className="platform-bars">
@@ -287,10 +263,10 @@ export function ReportsScreen() {
               <div className="panel-heading">
                 <h2>
                   <FileCheck2 size={22} />
-                  Top performing content
+                  Top Performing Content
                 </h2>
                 <button className="text-link" onClick={exportReport}>
-                  View all
+                  Download CSV
                 </button>
               </div>
               <div className="table-wrap">
@@ -310,15 +286,11 @@ export function ReportsScreen() {
                         (a, b) =>
                           (b.metrics?.reach || 0) - (a.metrics?.reach || 0),
                       )
-                      .map((p, i) => (
+                      .map((p) => (
                         <tr key={p.id}>
                           <td>
                             <div className="report-content">
-                              <img
-                                className="asset-preview"
-                                src={`/media/mockup/${sourceImages[i % 4]}.png`}
-                                alt="Sample report creative"
-                              />
+                              <AssetPreview asset={data.assets.find(a => a.id === p.assetId)} />
                               <div>
                                 <strong>{p.title}</strong>
                               </div>
@@ -347,7 +319,7 @@ export function ReportsScreen() {
               <div className="panel-heading">
                 <h2>
                   <Filter size={22} />
-                  Lead outcomes
+                  Lead Outcomes
                 </h2>
               </div>
               <div className="funnel">
@@ -375,45 +347,11 @@ export function ReportsScreen() {
                 <div className="panel-heading">
                   <h2>
                     <Sparkles size={19} />
-                    AI insights
+                    Performance Insight
                   </h2>
                 </div>
                 <p>
-                  Coffee behind-the-scenes posts drove the strongest engagement.
-                  Test two more next month.
-                </p>
-                <Badge>Sample insight · AI not connected</Badge>
-              </section>
-              <section className="panel">
-                <div className="panel-heading">
-                  <h2>
-                    <Link2 size={18} />
-                    Connected account
-                  </h2>
-                </div>
-                <p>
-                  {data.clients.find((c) => c.id === clientId)?.name ||
-                    "All clients"}
-                  <br />
-                  Not connected · illustrative report
-                </p>
-              </section>
-              <section className="panel">
-                <div className="panel-heading">
-                  <h2>
-                    <CalendarDays size={18} />
-                    Reporting period
-                  </h2>
-                </div>
-                <p>
-                  {new Date(period + "-01T12:00:00").toLocaleDateString(
-                    "en-US",
-                    { month: "short", year: "numeric" },
-                  )}
-                  <br />
-                  {compare === "Previous period"
-                    ? "Previous-period data not connected"
-                    : "No comparison"}
+                  “{strongest?.title}” received the most engagements in this period ({(strongest?.metrics?.engagements || 0).toLocaleString()}).
                 </p>
               </section>
             </div>
@@ -421,9 +359,8 @@ export function ReportsScreen() {
         </>
       ) : (
         <section className="panel">
-          <Empty title="No published content in this period">
-            Choose September 2026 to explore the sample report. Live analytics
-            will appear after social integrations are connected.
+          <Empty title="No Published Content in This Period">
+            Choose another month or platform to see published content.
           </Empty>
         </section>
       )}

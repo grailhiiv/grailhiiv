@@ -1,0 +1,211 @@
+name: grailhiiv
+services:
+  app:
+    build:
+      context: .
+      target: web
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?Set the Supabase URL}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?Set the publishable key}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3100:3100"
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?Set the server-only key}
+      GRAILHIIV_SITE_URL: ${GRAILHIIV_SITE_URL:-http://127.0.0.1:3100}
+      GRAILHIIV_N8N_URL: http://n8n:5678
+      GRAILHIIV_N8N_WEBHOOK_SECRET: ${GRAILHIIV_N8N_WEBHOOK_SECRET:?Generate a webhook secret}
+      GRAILHIIV_N8N_CALLBACK_SECRET: ${GRAILHIIV_N8N_CALLBACK_SECRET:?Generate a callback secret}
+      GRAILHIIV_N8N_WORKFLOWS: ${GRAILHIIV_N8N_WORKFLOWS:?Configure the workflow catalog}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GRAILHIIV_AI_MODELS: ${GRAILHIIV_AI_MODELS:-[]}
+      GRAILHIIV_AI_DATABASE_URL: postgresql://agent:${AI_POSTGRES_PASSWORD:-}@agent-db:5432/agent
+      GRAILHIIV_META_APP_ID: ${GRAILHIIV_META_APP_ID:-}
+      GRAILHIIV_META_APP_SECRET: ${GRAILHIIV_META_APP_SECRET:-}
+      GRAILHIIV_META_API_VERSION: ${GRAILHIIV_META_API_VERSION:-v25.0}
+      GRAILHIIV_SOCIAL_ENCRYPTION_KEY: ${GRAILHIIV_SOCIAL_ENCRYPTION_KEY:-}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  n8n-db:
+    image: postgres:17.11-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: n8n
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: ${N8N_POSTGRES_PASSWORD:?Generate the database password}
+    volumes:
+      - n8n_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n -d n8n"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n-bootstrap:
+    profiles: ["setup"]
+    image: docker.n8n.io/n8nio/n8n:2.42.6
+    restart: "no"
+    entrypoint: ["node", "/setup/bootstrap.mjs"]
+    environment: &n8n-environment
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: n8n-db
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n
+      DB_POSTGRESDB_PASSWORD: ${N8N_POSTGRES_PASSWORD}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?Generate and retain the n8n encryption key}
+      GRAILHIIV_N8N_WEBHOOK_SECRET: ${GRAILHIIV_N8N_WEBHOOK_SECRET}
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      GENERIC_TIMEZONE: Asia/Taipei
+      TZ: Asia/Taipei
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./deploy/n8n:/setup:ro
+    depends_on:
+      n8n:
+        condition: service_healthy
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.42.6
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      <<: *n8n-environment
+      N8N_EDITOR_BASE_URL: ${N8N_EDITOR_BASE_URL:-http://127.0.0.1:5678}
+      WEBHOOK_URL: http://n8n:5678/
+      N8N_SECURE_COOKIE: ${N8N_SECURE_COOKIE:-false}
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      EXECUTIONS_DATA_SAVE_ON_ERROR: none
+      EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS: "false"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: "168"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      n8n-db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:5678/healthz/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  automation-worker:
+    build:
+      context: .
+      target: worker
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      GRAILHIIV_N8N_URL: http://n8n:5678
+      GRAILHIIV_N8N_CALLBACK_URL: http://app:3100
+      GRAILHIIV_N8N_WEBHOOK_SECRET: ${GRAILHIIV_N8N_WEBHOOK_SECRET}
+      GRAILHIIV_N8N_CALLBACK_SECRET: ${GRAILHIIV_N8N_CALLBACK_SECRET}
+      GRAILHIIV_N8N_WORKFLOWS: ${GRAILHIIV_N8N_WORKFLOWS}
+    depends_on:
+      app:
+        condition: service_healthy
+      n8n:
+        condition: service_healthy
+
+  agent-db:
+    profiles: ["ai"]
+    image: postgres:17.11-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agent
+      POSTGRES_DB: agent
+      POSTGRES_PASSWORD: ${AI_POSTGRES_PASSWORD:-}
+    volumes:
+      - agent_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent -d agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  agent-setup:
+    profiles: ["ai"]
+    build:
+      context: .
+      target: agent-worker
+    restart: "no"
+    command: ["node", "--import", "tsx", "scripts/setup-agent.ts"]
+    environment:
+      GRAILHIIV_AI_DATABASE_URL: postgresql://agent:${AI_POSTGRES_PASSWORD:-}@agent-db:5432/agent
+    depends_on:
+      agent-db:
+        condition: service_healthy
+
+  agent-worker:
+    profiles: ["ai"]
+    build:
+      context: .
+      target: agent-worker
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      GRAILHIIV_AI_DATABASE_URL: postgresql://agent:${AI_POSTGRES_PASSWORD:-}@agent-db:5432/agent
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GRAILHIIV_AI_MODELS: ${GRAILHIIV_AI_MODELS:-[]}
+    depends_on:
+      agent-setup:
+        condition: service_completed_successfully
+      app:
+        condition: service_healthy
+
+  internal-worker:
+    build:
+      context: .
+      target: internal-worker
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+    depends_on:
+      app:
+        condition: service_healthy
+
+  social-worker:
+    build:
+      context: .
+      target: social-worker
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      GRAILHIIV_META_APP_ID: ${GRAILHIIV_META_APP_ID:-}
+      GRAILHIIV_META_APP_SECRET: ${GRAILHIIV_META_APP_SECRET:-}
+      GRAILHIIV_META_API_VERSION: ${GRAILHIIV_META_API_VERSION:-v25.0}
+      GRAILHIIV_SOCIAL_ENCRYPTION_KEY: ${GRAILHIIV_SOCIAL_ENCRYPTION_KEY:-}
+    depends_on:
+      app:
+        condition: service_healthy
+
+volumes:
+  n8n_db:
+  n8n_data:
+  agent_db:

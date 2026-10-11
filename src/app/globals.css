@@ -210,10 +210,6 @@ svg {
     background 0.15s,
     color 0.15s;
 }
-.nav-item:hover {
-  background: #edf3f3;
-  color: var(--teal);
-}
 .nav-item.active {
   background: #e4f0f0;
   color: var(--teal);
@@ -277,9 +273,6 @@ svg {
   color: var(--muted);
   margin-top: 14px;
 }
-.setup-link:hover {
-  color: var(--teal);
-}
 .main-shell {
   margin-left: var(--sidebar);
   width: calc(100% - var(--sidebar));
@@ -335,10 +328,6 @@ svg {
   width: 33px;
   height: 33px;
   color: #60717b;
-}
-.icon-button:hover {
-  background: #eff3f4;
-  color: var(--teal);
 }
 .icon-button.bordered {
   border: 1px solid var(--line);
@@ -446,19 +435,11 @@ svg {
     background 0.15s,
     border-color 0.15s;
 }
-.button:hover {
-  border-color: #a4c3c7;
-  background: #f8fbfb;
-}
 .button.primary {
   background: var(--teal);
   border-color: var(--teal);
   color: white;
   box-shadow: 0 1px 2px #0b505519;
-}
-.button.primary:hover {
-  background: var(--teal-dark);
-  border-color: var(--teal-dark);
 }
 .button.compact {
   height: 32px;
@@ -479,9 +460,6 @@ svg {
   font-size: var(--text-caption, 14px);
   font-weight: 550;
   white-space: nowrap;
-}
-.text-link:hover {
-  text-decoration: underline;
 }
 .panel {
   background: var(--white);
@@ -689,10 +667,6 @@ svg {
   transition:
     box-shadow 0.15s,
     transform 0.15s;
-}
-.content-card:hover {
-  box-shadow: 0 5px 14px #18454b0a;
-  transform: translateY(-2px);
 }
 .card-image {
   position: relative;
@@ -1041,10 +1015,6 @@ svg {
   font-size: var(--text-caption, 14px);
   color: #8b989e;
   margin-bottom: 7px;
-}
-.day-number:hover {
-  background: #d6ebea;
-  color: var(--teal);
 }
 .today .day-number {
   background: var(--teal);
@@ -1593,9 +1563,6 @@ tr:last-child td {
   color: #465f6a;
   font-weight: 550;
   text-align: left;
-}
-.table-link:hover {
-  color: var(--teal);
 }
 td select {
   height: 31px;

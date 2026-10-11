@@ -1,0 +1,99 @@
+/* Interaction states share one source so mockup styles cannot override them. */
+.button.primary,
+.page-approvals .segmented > button.selected {
+  /* Keep every animation frame opaque; fading from a removed gradient flashes white. */
+  background: var(--teal);
+  color: white;
+}
+:is(.button, .icon-button, .segmented > button, .settings-tabs > button,
+    .asset-folders > button, .client-list > button, .approval-item, .lead-card,
+    .asset-card, .content-card, .calendar-post, .idea-card, .account-menu > summary,
+    .account-dropdown > a, .account-dropdown > button, .auth-card button,
+    .cloud-team button, .cloud-controls button) {
+  transition: background-color 150ms, border-color 150ms, color 150ms, box-shadow 150ms;
+}
+
+:is(button, .button)[aria-disabled="true"],
+.button:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+:is(button, a, summary):focus-visible,
+label.button:focus-within {
+  outline: 3px solid #197c86;
+  outline-offset: 3px;
+}
+.settings-tabs > button:focus-visible { outline-offset: -3px; }
+
+@media (hover: hover) and (pointer: fine) {
+  :where(.button, .auth-card button, .cloud-team button, .cloud-controls button):not(:disabled):not([aria-disabled="true"]):not(:has(input:disabled)):hover {
+    background: #edf5f5;
+    border-color: #82afb5;
+    color: #064f59;
+  }
+  .button.primary:not(:disabled):not([aria-disabled="true"]):hover,
+  .auth-card .primary-button:not(:disabled):not([aria-disabled="true"]):hover {
+    background: var(--teal-dark);
+    border-color: var(--teal-dark);
+    color: white;
+  }
+  .icon-button:not(:disabled):hover {
+    background: #e2eff0;
+    border-color: #82afb5;
+    color: var(--teal);
+  }
+  :is(.segmented > button, .asset-folders > button, .client-list > button):not(:disabled):hover {
+    background: #e8f2f3;
+    color: #064f59;
+  }
+  :is(.segmented > button, .asset-folders > button, .client-list > button).selected:not(:disabled):hover {
+    background: #d1e7ea;
+    color: #04464e;
+  }
+  .page-approvals .segmented > button.selected:not(:disabled):hover {
+    background: var(--teal-dark);
+    color: white;
+  }
+  .settings-tabs > button:not(:disabled):hover {
+    background: transparent;
+    color: var(--teal-dark);
+  }
+  :is(.approval-item, .lead-card, .asset-card, .content-card, .calendar-post, .idea-card):not(:disabled):hover {
+    border-color: #197c86;
+    box-shadow: inset 0 0 0 1px #197c86;
+  }
+  .toggle:not(:disabled):hover { filter: brightness(0.88); }
+  .day-number:not(:disabled):hover { background: #d6ebea; color: var(--teal-dark); }
+  .calendar-cell.today .day-number:not(:disabled):hover { background: var(--teal-dark); color: white; }
+  :is(.text-link, .table-link, .setup-link):not(:disabled):hover {
+    color: var(--teal-dark);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .nav-item:hover { background: #e8f2f3; color: var(--teal-dark); }
+  .nav-item.active:hover { background: #d1e7ea; }
+  .account-menu > summary:hover { background: transparent; color: var(--teal-dark); }
+  .account-dropdown a:hover,
+  .account-dropdown button:not(:disabled):hover { background: #e8f2f3; color: var(--teal-dark); }
+}
+
+:where(.button, .icon-button, .segmented > button, .asset-folders > button,
+    .client-list > button, .auth-card button,
+    .cloud-team button, .cloud-controls button):not(:disabled):not([aria-disabled="true"]):active {
+  background: #d1e7ea;
+  color: var(--teal-dark);
+}
+.button.primary:not(:disabled):active,
+.auth-card .primary-button:not(:disabled):active,
+.page-approvals .segmented > button.selected:not(:disabled):active {
+  background: #033a42;
+  border-color: #033a42;
+  color: white;
+}
+.toggle:not(:disabled):active { filter: brightness(0.8); }
+.settings-tabs > button:active { background: transparent; color: var(--teal-dark); }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(button, a, summary, label.button) { transition: none; }
+}

@@ -476,19 +476,13 @@ h3 {
   width: 17px;
 }
 .platform.instagram > svg {
-  color: #ec0095;
+  color: #e4405f;
 }
 .platform.facebook > svg {
-  color: #0879fc;
-  fill: #0879fc;
-  stroke: white;
-  border-radius: 50%;
-  background: #0879fc;
+  color: #1877f2;
 }
 .platform.linkedin > svg {
-  background: #0073b2;
-  color: white;
-  border-radius: 2px;
+  color: #0a66c2;
 }
 .image-platform .platform span {
   display: none;

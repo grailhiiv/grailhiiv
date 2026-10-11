@@ -1,30 +1,33 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Building2,
   Plus,
   Save,
   Download,
   ShieldCheck,
   Unplug,
-  Check,
   Upload,
 } from "lucide-react";
 import { useWorkspace } from "../workspace-provider";
-import { Badge, ClientMark, Field, Modal, Platform } from "../ui";
+import { Badge, ClientMark, Field, Modal } from "../ui";
 import { downloadFile } from "@/lib/assets";
 import type { Client } from "@/lib/types";
 import { TeamSettings } from "../team-settings";
+import { titleLabel } from "@/lib/labels";
+import { OperationsSettings } from "../operations-settings";
+import { SocialAccounts } from "../social-accounts";
 export function SettingsScreen() {
   const { data, clientId, update, toast, cloud, session } = useWorkspace();
-  const [tab, setTab] = useState("Clients");
+  const [tab, setTab] = useState(data.clients.length ? "Clients" : "Workspace");
+  useEffect(() => { if (new URLSearchParams(window.location.search).has("social")) setTab("Connected accounts"); }, []);
   const [selectedId, setSelectedId] = useState(
-    clientId === "all" ? data.clients[0].id : clientId,
+    clientId === "all" ? data.clients[0]?.id || "" : clientId,
   );
   const [adding, setAdding] = useState(false);
   const [workspaceName, setWorkspaceName] = useState(data.preferences.name);
   const selected =
     data.clients.find((c) => c.id === selectedId) || data.clients[0];
+  const canManage = !cloud || session?.role === "owner";
   return (
     <>
       <div className="settings-tabs">
@@ -38,10 +41,11 @@ export function SettingsScreen() {
         ].map((t) => (
           <button
             className={tab === t ? "selected" : ""}
+            aria-pressed={tab === t}
             key={t}
             onClick={() => setTab(t)}
           >
-            {t}
+            {titleLabel(t)}
           </button>
         ))}
       </div>
@@ -51,7 +55,7 @@ export function SettingsScreen() {
             {data.clients.map((c) => (
               <button
                 key={c.id}
-                className={selected.id === c.id ? "selected" : ""}
+                className={selected?.id === c.id ? "selected" : ""}
                 onClick={() => setSelectedId(c.id)}
               >
                 <ClientMark client={c} />
@@ -67,15 +71,22 @@ export function SettingsScreen() {
               onClick={() => setAdding(true)}
             >
               <Plus size={17} />
-              Add client
+              Add Client
             </button>
           </aside>
-          <ClientSettings key={selected.id} client={selected} />
+          {selected ? (
+            <ClientSettings key={selected.id} client={selected} />
+          ) : (
+            <section className="panel settings-form">
+              <h2>No Clients Yet</h2>
+              <p>Add a client to manage its preferences.</p>
+            </section>
+          )}
         </div>
       )}
       {tab === "Workspace" && (
         <section className="panel settings-form">
-          <h2>Workspace preferences</h2>
+          <h2>Workspace Preferences</h2>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -90,7 +101,8 @@ export function SettingsScreen() {
               toast("Workspace preferences saved");
             }}
           >
-            <Field label="Workspace name">
+            <fieldset className="settings-fields" disabled={!canManage}>
+            <Field label="Workspace Name">
               <input
                 required
                 maxLength={80}
@@ -101,12 +113,13 @@ export function SettingsScreen() {
             <div className="modal-footer">
               <button className="button primary">
                 <Save size={16} />
-                Save changes
+                Save Changes
               </button>
             </div>
+            </fieldset>
           </form>
           <div className="detail-section">
-            <h3>Export your local workspace</h3>
+            <h3>Export Workspace</h3>
             <p className="muted">
               Download your client settings, content, leads, workflows and
               activity as JSON. Uploaded file binaries are not included;
@@ -124,7 +137,7 @@ export function SettingsScreen() {
               }}
             >
               <Download size={16} />
-              Export workspace
+              Export Workspace
             </button>
           </div>
         </section>
@@ -134,31 +147,31 @@ export function SettingsScreen() {
         <section className="panel settings-form">
           <h2>
             <ShieldCheck size={20} />
-            Team access
+            Team Access
           </h2>
           <div className="team-row">
             <span className="avatar">SL</span>
             <div>
               <strong>Sam Lee</strong>
-              <small>Demo workspace owner</small>
+
             </div>
             <Badge tone="green">Owner</Badge>
           </div>
           <div className="integration-banner">
             <Unplug size={22} />
             <p>
-              Team invitations and enforced client permissions will be available
-              when Supabase authentication is connected.
+              Connect a shared workspace to invite teammates and assign client access.
             </p>
           </div>
         </section>
       )}
-      {tab === "Connected accounts" && (
+      {tab === "Connected accounts" && cloud && <SocialAccounts key={session?.workspaceId} />}
+      {tab === "Connected accounts" && !cloud && (
         <section className="panel settings-form">
-          <h2>Connected accounts</h2>
+          <h2>Connected Accounts</h2>
           <p className="muted">
             {cloud
-              ? "Supabase is connected. Social accounts and automation services are not connected yet."
+              ? "Supabase is connected. Manage n8n workflows and service status on the Automations screen. Social accounts are not connected yet."
               : "No external accounts are connected in this local demo."}
           </p>
           {["Supabase", "n8n", "Instagram", "Facebook", "LinkedIn", "CRM"].map(
@@ -169,40 +182,34 @@ export function SettingsScreen() {
                 </span>
                 <strong>{name}</strong>
                 <Badge>
-                  {name === "Supabase" && cloud ? "Connected" : "Not connected"}
+                  {name === "Supabase" && cloud
+                    ? "Connected"
+                    : name === "n8n" && cloud
+                      ? "See Automations"
+                      : "Not connected"}
                 </Badge>
               </div>
             ),
           )}
-          <p className="muted small-text">
-            Service credentials belong on the server. This demo does not collect
-            or store API keys in the browser.
-          </p>
-        </section>
+</section>
       )}
-      {tab === "AI preferences" && (
+      {tab === "AI preferences" && cloud && <OperationsSettings key={session?.workspaceId} />}
+      {tab === "AI preferences" && !cloud && (
         <section className="panel settings-form">
-          <h2>
-            <Unplug size={20} />
-            AI provider setup
-          </h2>
+          <h2>AI Preferences</h2>
           <p className="muted">
-            LangChain and LangGraph are planned for the agent integration phase.
-            The Overview’s content plan currently uses editable templates.
+            The demo uses editable content templates. In a shared workspace,
+            you can choose an AI model when creating a content plan.
           </p>
-          <div className="connection-row">
-            <strong>Model provider</strong>
-            <Badge>Not connected</Badge>
-          </div>
           <p>
-            Client-specific brand voice and audience settings are already
-            available in the Clients tab.
+            Describe how your client should sound and who they are writing
+            for in the Clients tab.
           </p>
         </section>
       )}
       {tab === "Notifications" && (
         <section className="panel settings-form">
-          <h2>Workspace notifications</h2>
+          <h2>Workspace Notifications</h2>
           <div className="preference-row">
             <div>
               <strong>Show activity indicator</strong>
@@ -215,7 +222,7 @@ export function SettingsScreen() {
                 "toggle " + (data.preferences.notifications ? "on" : "")
               }
               role="switch"
-              aria-label="Show activity indicator"
+              aria-label="Show Activity Indicator"
               aria-checked={data.preferences.notifications}
               onClick={() => {
                 update((prev) => ({
@@ -232,7 +239,7 @@ export function SettingsScreen() {
             </button>
           </div>
           <p className="muted small-text">
-            Email and push notifications will be connected later.
+            Email and push notifications are not available.
           </p>
         </section>
       )}
@@ -263,21 +270,21 @@ function ClientSettings({ client }: { client: Client }) {
   return (
     <section className="panel settings-form">
       <form onSubmit={submit}>
+        <fieldset className="settings-fields" disabled={cloud && session?.role !== "owner"}>
         <div className="settings-client-heading">
           <ClientMark client={form} />
           <div>
             <h2>{client.name}</h2>
-            <p className="muted small-text">Logo</p>
-            <small className="muted">JPG or PNG, at least 400 × 400 px</small>
+            <small className="muted">PNG or JPG, up to 1 MB</small>
             <div className="logo-actions">
               <label className="button">
                 <Upload size={17} />
-                Change logo
+                Change Logo
                 <input
                   type="file"
                   accept="image/png,image/jpeg"
                   className="visually-hidden"
-                  aria-label="Change client logo"
+                  aria-label="Change Client Logo"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
@@ -332,7 +339,7 @@ function ClientSettings({ client }: { client: Client }) {
           </div>
         </div>
         <div className="form-grid">
-          <Field label="Client name">
+          <Field label="Client Name">
             <input
               required
               maxLength={100}
@@ -353,6 +360,8 @@ function ClientSettings({ client }: { client: Client }) {
               onChange={(e) => setForm({ ...form, timezone: e.target.value })}
             >
               {[
+                form.timezone,
+                "Asia/Taipei",
                 "Asia/Singapore",
                 "Asia/Manila",
                 "America/New_York",
@@ -360,18 +369,18 @@ function ClientSettings({ client }: { client: Client }) {
                 "Europe/London",
                 "Australia/Sydney",
                 "UTC",
-              ].map((t) => (
+              ].filter((t, i, options) => options.indexOf(t) === i).map((t) => (
                 <option key={t}>{t}</option>
               ))}
             </select>
           </Field>
-          <Field label="Main contact name">
+          <Field label="Main Contact Name">
             <input
               value={form.contact}
               onChange={(e) => setForm({ ...form, contact: e.target.value })}
             />
           </Field>
-          <Field label="Main contact email">
+          <Field label="Main Contact Email">
             <input
               type="email"
               value={form.email}
@@ -380,14 +389,14 @@ function ClientSettings({ client }: { client: Client }) {
           </Field>
         </div>
         <div className="form-grid">
-          <Field label="Brand voice">
+          <Field label="Brand Voice">
             <textarea
               rows={3}
               value={form.voice}
               onChange={(e) => setForm({ ...form, voice: e.target.value })}
             />
           </Field>
-          <Field label="Target audience">
+          <Field label="Target Audience">
             <textarea
               rows={3}
               value={form.audience}
@@ -395,9 +404,6 @@ function ClientSettings({ client }: { client: Client }) {
             />
           </Field>
         </div>
-        <p className="small-text" style={{ margin: "0 0 10px" }}>
-          Approval preference
-        </p>
         <div className="preference-row">
           <div>
             <strong>Require approval before publishing</strong>
@@ -406,7 +412,7 @@ function ClientSettings({ client }: { client: Client }) {
             type="button"
             className={"toggle " + (form.approvalRequired ? "on" : "")}
             role="switch"
-            aria-label="Require approval before publishing"
+            aria-label="Require Approval Before Publishing"
             aria-checked={form.approvalRequired}
             onClick={() =>
               setForm({ ...form, approvalRequired: !form.approvalRequired })
@@ -415,71 +421,17 @@ function ClientSettings({ client }: { client: Client }) {
             <span />
           </button>
         </div>
-        <div className="settings-support">
-          <section className="panel">
-            <h3>Connected accounts</h3>
-            {["Instagram", "Facebook"].map((name) => (
-              <div className="connection-row" key={name}>
-                <Platform name={name} />
-                <div style={{ flex: 1 }}>
-                  <strong>{name}</strong>
-                  <small>Not connected · sample layout</small>
-                </div>
-                <button
-                  type="button"
-                  className="button compact"
-                  onClick={() =>
-                    toast("Social account integration is not configured yet.")
-                  }
-                >
-                  Manage
-                </button>
-              </div>
-            ))}
-          </section>
-          <section className="panel">
-            <h3>Team access</h3>
-            {[
-              ...(!cloud
-                ? [["Sam Lee", "sam@agency.com", "Owner", "sam-avatar"]]
-                : []),
-              ...(!cloud
-                ? [
-                    [
-                      client.contact,
-                      client.email,
-                      "Client reviewer",
-                      "alex-avatar",
-                    ],
-                  ]
-                : []),
-            ].map(([name, email, role, avatar]) => (
-              <div className="team-row" key={role}>
-                <img src={`/media/mockup/${avatar}.png`} alt="" />
-                <div>
-                  <strong>{name}</strong>
-                  <small>{email}</small>
-                </div>
-                <Badge tone={role === "Owner" ? "green" : "blue"}>{role}</Badge>
-              </div>
-            ))}
-            <small className="muted">
-              {cloud
-                ? "Manage assigned members in Team & permissions."
-                : "Sample roles · authentication not connected"}
-            </small>
-          </section>
-        </div>
         <div className="modal-footer">
           <button
             type="button"
             className="button"
             onClick={() => setForm(client)}
           >
-            Discard changes
+            Discard Changes
           </button>
-          <button className="button primary">Save changes</button>
+          <button className="button primary">Save Changes</button>
         </div>
+        </fieldset>
       </form>
     </section>
   );
@@ -496,7 +448,7 @@ function NewClient({
   const [contact, setContact] = useState("");
   const [email, setEmail] = useState("");
   return (
-    <Modal title="Add a client" onClose={onClose}>
+    <Modal title="Add a Client" onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -527,7 +479,7 @@ function NewClient({
           onClose();
         }}
       >
-        <Field label="Client name">
+        <Field label="Client Name">
           <input
             required
             maxLength={100}
@@ -535,10 +487,10 @@ function NewClient({
             onChange={(e) => setName(e.target.value)}
           />
         </Field>
-        <Field label="Main contact">
+        <Field label="Main Contact">
           <input value={contact} onChange={(e) => setContact(e.target.value)} />
         </Field>
-        <Field label="Contact email">
+        <Field label="Contact Email">
           <input
             type="email"
             value={email}
@@ -551,7 +503,7 @@ function NewClient({
           </button>
           <button className="button primary">
             <Plus size={16} />
-            Add client
+            Add Client
           </button>
         </div>
       </form>

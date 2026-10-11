@@ -1,6 +1,15 @@
 "use client";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { X, FileImage, Instagram, Linkedin, Facebook } from "lucide-react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import { X, FileImage } from "lucide-react";
+import { SocialIcon } from "./social-icon";
+import { titleLabel } from "@/lib/labels";
 import type { Asset, Client } from "@/lib/types";
 import { loadFile } from "@/lib/assets";
 export function Badge({
@@ -30,7 +39,7 @@ export function Status({ value }: { value: string }) {
                 : "neutral"
       }
     >
-      {value}
+      {titleLabel(value)}
     </Badge>
   );
 }
@@ -55,15 +64,9 @@ export function ClientMark({
   );
 }
 export function Platform({ name }: { name: string }) {
-  const Icon =
-    name === "Instagram"
-      ? Instagram
-      : name === "Facebook"
-        ? Facebook
-        : Linkedin;
   return (
     <span className={"platform " + name.toLowerCase()} title={name}>
-      <Icon size={15} />
+      <SocialIcon name={name} />
       <span>{name}</span>
     </span>
   );
@@ -96,10 +99,10 @@ export function AssetPreview({
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [asset?.id, asset?.uploaded]);
+  }, [asset?.id, asset?.uploaded, asset?.storagePath]);
   const src = asset?.uploaded
     ? asset.storagePath
-      ? asset.url
+      ? asset.thumbnailPath && variant !== "detail" ? asset.url + "&thumbnail=1" : asset.url
       : url
     : (variant && asset?.variants?.[variant]) || asset?.url;
   if (src && asset?.type.startsWith("image/"))
@@ -138,24 +141,31 @@ export function Empty({
       <div className="empty-icon">
         <FileImage size={26} />
       </div>
-      <h3>{title}</h3>
+      <h3>{titleLabel(title)}</h3>
       {children && <p>{children}</p>}
     </div>
   );
 }
+const modalStack: string[] = [];
 export function Modal({
   title,
   onClose,
   children,
   wide = false,
+  className = "",
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   wide?: boolean;
+  className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
+    modalStack.push(titleId);
     const previous = document.activeElement as HTMLElement | null;
     const oldOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -165,7 +175,10 @@ export function Modal({
       );
     elements()?.[0]?.focus();
     const handler = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (modalStack.at(-1) !== titleId) return;
+      if (event.key === "Escape") {
+        closeRef.current();
+      }
       if (event.key === "Tab") {
         const all = elements();
         if (!all?.length) return;
@@ -182,11 +195,12 @@ export function Modal({
     };
     document.addEventListener("keydown", handler);
     return () => {
+      modalStack.splice(modalStack.indexOf(titleId), 1);
       document.body.style.overflow = oldOverflow;
       document.removeEventListener("keydown", handler);
       previous?.focus();
     };
-  }, [onClose]);
+  }, []);
   return (
     <div
       className="modal-backdrop"
@@ -196,16 +210,17 @@ export function Modal({
     >
       <div
         ref={ref}
-        className={"modal " + (wide ? "wide" : "")}
+        className={"modal " + (wide ? "wide " : "") + className}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="modal-title"
+        aria-labelledby={titleId}
       >
         <div className="modal-heading">
-          <h2 id="modal-title">{title}</h2>
+          <h2 id={titleId}>{title}</h2>
           <button
             className="icon-button"
-            aria-label="Close dialog"
+            type="button"
+            aria-label="Close Dialog"
             onClick={onClose}
           >
             <X size={20} />
@@ -215,6 +230,36 @@ export function Modal({
       </div>
     </div>
   );
+}
+const detailQuery = "(max-width: 1200px)";
+function subscribeDetailLayout(onChange: () => void) {
+  const media = window.matchMedia(detailQuery);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+export function DetailsPanel({
+  title,
+  className,
+  onClose,
+  children,
+}: {
+  title: string;
+  className: string;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  const compact = useSyncExternalStore(
+    subscribeDetailLayout,
+    () => window.matchMedia(detailQuery).matches,
+    () => false,
+  );
+  if (compact)
+    return (
+      <Modal title={title} onClose={onClose}>
+        <div className={className}>{children}</div>
+      </Modal>
+    );
+  return <aside className={"panel " + className}>{children}</aside>;
 }
 export function Field({
   label,

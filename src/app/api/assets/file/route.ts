@@ -24,7 +24,11 @@ export async function GET(request: Request) {
     const result = await db.storage
       .from("grailhiiv-assets")
       .createSignedUrl(
-        asset.storagePath!,
+        url.searchParams.has("thumbnail") &&
+          asset.thumbnailPath &&
+          !url.searchParams.has("download")
+          ? asset.thumbnailPath
+          : asset.storagePath!,
         60,
         url.searchParams.has("download") ? { download: asset.name } : {},
       );

@@ -67,7 +67,7 @@ export function PostEditor({
   }
   return (
     <Modal
-      title={post ? "Edit content" : "Create content"}
+      title={post ? "Edit Content" : "Create Content"}
       onClose={onClose}
       wide
     >
@@ -92,13 +92,13 @@ export function PostEditor({
               value={form.platform}
               onChange={(e) => setForm({ ...form, platform: e.target.value })}
             >
-              {["Instagram", "Facebook", "LinkedIn"].map((p) => (
+              {["Instagram", "Facebook", "LinkedIn", "TikTok", "X"].map((p) => (
                 <option key={p}>{p}</option>
               ))}
             </select>
           </Field>
         </div>
-        <Field label="Post title">
+        <Field label="Post Title">
           <input
             autoComplete="off"
             maxLength={120}
@@ -118,7 +118,7 @@ export function PostEditor({
           />
         </Field>
         <div className="form-grid">
-          <Field label="Publishing date (optional)">
+          <Field label="Publishing Date (Optional)">
             <input
               type="date"
               value={form.date}
@@ -138,7 +138,7 @@ export function PostEditor({
             value={form.assetId}
             onChange={(e) => setForm({ ...form, assetId: e.target.value })}
           >
-            <option value="">No asset</option>
+            <option value="">No Asset</option>
             {data.assets
               .filter((a) => a.clientId === form.clientId)
               .map((a) => (
@@ -163,7 +163,7 @@ export function PostEditor({
             Cancel
           </button>
           <button className="button primary" type="submit">
-            Save draft
+            Save Draft
           </button>
         </div>
       </form>

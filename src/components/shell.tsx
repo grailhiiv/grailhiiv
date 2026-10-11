@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   House,
   CalendarDays,
@@ -16,17 +16,17 @@ import {
   Menu,
   X,
   Hexagon,
-  ArrowUpRight,
 } from "lucide-react";
 import { useWorkspace } from "./workspace-provider";
 import { Modal, ClientMark } from "./ui";
+import { AccountMenu } from "./account-menu";
 const nav = [
   ["/", "Overview", House],
-  ["/calendar", "Content calendar", CalendarDays],
+  ["/calendar", "Content Calendar", CalendarDays],
   ["/approvals", "Approvals", CircleCheck],
   ["/leads", "Leads & CRM", UsersRound],
   ["/automations", "Automations", Workflow],
-  ["/assets", "Asset library", Images],
+  ["/assets", "Asset Library", Images],
   ["/reports", "Reports", ChartNoAxesCombined],
   ["/settings", "Settings", Settings2],
 ] as const;
@@ -39,10 +39,38 @@ export function Shell({ children }: { children: React.ReactNode }) {
     notice,
     storageError,
     session,
-    cloud,
+    workspaces,
+    switchWorkspace,
+    saving,
   } = useWorkspace();
   const pathname = usePathname();
   const [mobile, setMobile] = useState(false);
+  const sidebar = useRef<HTMLElement>(null);
+  const navigationTrigger = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!mobile) return;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const controls = () => [...(sidebar.current?.querySelectorAll<HTMLElement>('a[href],button,select') || [])].filter(el => el.getClientRects().length && getComputedStyle(el).visibility !== "hidden");
+    const focusFrame = requestAnimationFrame(() => sidebar.current?.querySelector<HTMLElement>(".mobile-close")?.focus());
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobile(false);
+      if (event.key !== "Tab") return;
+      const items = controls();
+      const target = event.shiftKey ? items.at(-1) : items[0];
+      if (document.activeElement === (event.shiftKey ? items[0] : items.at(-1))) {
+        event.preventDefault();
+        target?.focus();
+      }
+    };
+    document.addEventListener("keydown", keydown);
+    return () => {
+      cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = overflow;
+      document.removeEventListener("keydown", keydown);
+      navigationTrigger.current?.focus();
+    };
+  }, [mobile]);
   const [notifications, setNotifications] = useState(false);
   const pending = data.posts.filter(
     (p) =>
@@ -60,7 +88,15 @@ export function Shell({ children }: { children: React.ReactNode }) {
     );
   return (
     <div className={"app " + (pathname === "/" ? "is-overview" : "")}>
-      <aside className={"sidebar " + (mobile ? "open" : "")}>
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <aside
+        ref={sidebar}
+        className={"sidebar " + (mobile ? "open" : "")}
+        onTransitionEnd={(event) => {
+          if (mobile && event.target === event.currentTarget && event.propertyName === "transform")
+            sidebar.current?.querySelector<HTMLElement>(".mobile-close")?.focus();
+        }}
+      >
         <Link href="/" className="brand" onClick={() => setMobile(false)}>
           <span className="brand-icon">
             <Hexagon size={27} />
@@ -69,7 +105,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <span>GrailHiiv</span>
         </Link>
         <button
-          aria-label="Close navigation"
+          aria-label="Close Navigation"
           className="icon-button mobile-close"
           onClick={() => setMobile(false)}
         >
@@ -78,11 +114,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
         <div className="client-selector">
           <UsersRound size={17} />
           <select
-            aria-label="Selected client"
+            aria-label="Selected Client"
             value={clientId}
             onChange={(e) => setClientId(e.target.value)}
           >
-            <option value="all">All clients</option>
+            <option value="all">All Clients</option>
             {data.clients.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -91,7 +127,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </select>
           <ChevronDown size={14} />
         </div>
-        <nav aria-label="Main navigation">
+        <nav aria-label="Main Navigation">
           {nav
             .filter(
               ([href]) =>
@@ -114,34 +150,42 @@ export function Shell({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
         </nav>
-        <div className="sidebar-bottom">
-          <div className="workspace-plan">
-            <span className="status-dot" />
-            <div>
-              <strong>{cloud ? "Shared workspace" : "Local demo"}</strong>
-              <small>
-                {cloud ? "Saved in Supabase" : "Saved in this browser"}
-              </small>
-            </div>
+        {workspaces.length > 1 && (
+          <div className="sidebar-bottom">
+            <select
+              className="workspace-selector"
+              aria-label="Workspace"
+              value={session?.workspaceId}
+              disabled={saving}
+              onChange={(event) => switchWorkspace(event.target.value)}
+            >
+              {workspaces.map((workspace) => (
+                <option
+                  key={workspace.workspace_id}
+                  value={workspace.workspace_id}
+                >
+                  {workspace.workspace_id} ({workspace.role})
+                </option>
+              ))}
+            </select>
           </div>
-          <Link href="/settings" className="setup-link">
-            Set up your workspace <ArrowUpRight size={15} />
-          </Link>
-        </div>
+        )}
       </aside>
       {mobile && (
         <button
           className="nav-overlay"
-          aria-label="Close navigation"
+          aria-label="Close Navigation"
           onClick={() => setMobile(false)}
         />
       )}
-      <div className="main-shell">
+      <div className="main-shell" inert={mobile || undefined}>
         <header className="topbar">
           <div className="breadcrumb">
             <button
               className="icon-button mobile-menu"
-              aria-label="Open navigation"
+              ref={navigationTrigger}
+              aria-label="Open Navigation"
+              aria-expanded={mobile}
               onClick={() => setMobile(true)}
             >
               <Menu />
@@ -151,27 +195,19 @@ export function Shell({ children }: { children: React.ReactNode }) {
             {pathname === "/" && (
               <span className="top-date">
                 <CalendarDays size={18} />
-                October 8, 2026
+                {new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date())}
               </span>
             )}
             <button
               className="icon-button notification"
-              aria-label="Recent activity"
+              aria-label="Recent Activity"
               onClick={() => setNotifications(true)}
             >
               <Bell size={22} />
               {data.preferences.notifications && <i />}
             </button>
             <span className="top-divider" />
-            <Link className="profile" href="/settings">
-              <img
-                className="avatar"
-                src="/media/mockup/sam-avatar.png"
-                alt=""
-              />
-              <span>{session?.email || "Sam Lee"}</span>
-              <ChevronDown size={14} />
-            </Link>
+            <AccountMenu />
           </div>
         </header>
         {storageError && (
@@ -179,17 +215,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
             {storageError}
           </div>
         )}
-        <main>{children}</main>
-        <footer className="app-footer">
-          <span>
-            GrailHiiv · {cloud ? data.preferences.name : "Sample workspace"}
-          </span>
-          <span>
-            {cloud
-              ? "Shared workspace · AI and publishing not connected"
-              : "Local demo · No external accounts connected"}
-          </span>
-        </footer>
+        <main id="main-content" tabIndex={-1}>{children}</main>
       </div>
       {notice && (
         <div className="toast" role="status">
@@ -198,7 +224,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </div>
       )}
       {notifications && (
-        <Modal title="Recent activity" onClose={() => setNotifications(false)}>
+        <Modal title="Recent Activity" onClose={() => setNotifications(false)}>
           <div className="activity-list">
             {data.activities
               .filter(

@@ -2,6 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { hasSupabase, supabaseConfig } from "@/lib/supabase/config";
 export async function proxy(request: NextRequest) {
+  // Machine callbacks authenticate with their per-run token, not browser cookies.
+  if (request.nextUrl.pathname.startsWith("/api/automations/callback/")) return NextResponse.next();
   if (!hasSupabase()) return NextResponse.next();
   let response = NextResponse.next({ request });
   const { url, key } = supabaseConfig();

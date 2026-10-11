@@ -50,7 +50,7 @@
   background: white;
 }
 .auth-card .primary-button {
-  background: #315df0;
+  background: var(--teal);
   color: white;
 }
 .auth-links {
@@ -58,18 +58,6 @@
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 20px;
-}
-.cloud-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 12px 20px;
-  border-bottom: 1px solid #e2e5ea;
-  background: white;
-}
-.cloud-controls select {
-  max-width: 260px;
 }
 .cloud-team {
   padding: 24px;
@@ -113,6 +101,7 @@
   border: 1px solid #cdd5df;
   border-radius: 6px;
   background: white;
+  min-height: 44px;
 }
 .cloud-team h2 {
   margin: 0 0 20px;
@@ -120,29 +109,12 @@
 .cloud-team h3 {
   margin-top: 24px;
 }
-.cloud-controls.has-sidebar {
-  margin-left: var(--sidebar);
-}
-.cloud-identity {
-  min-width: 0;
-  max-width: 380px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cloud-controls + .app .profile > span {
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-@media (max-width: 1024px) {
-  .cloud-controls.has-sidebar {
-    margin-left: 0;
-  }
-  .cloud-identity {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-    white-space: normal;
-  }
+.auth-card input { height: 44px; }
+.auth-card :is(input, button) { font-size: 16px; }
+.cloud-team :is(input[type="checkbox"], input[type="radio"]) { width: 18px; height: 18px; flex-shrink: 0; }
+.cloud-team p, .cloud-member { overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .auth-page { padding: 16px; }
+  .auth-card { padding: 24px; }
+  .cloud-team { padding: 20px 16px; }
 }

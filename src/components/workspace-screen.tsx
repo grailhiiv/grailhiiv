@@ -25,21 +25,18 @@ const ReportsScreen = dynamic(() =>
 const SettingsScreen = dynamic(() =>
   import("./screens/settings").then((m) => m.SettingsScreen),
 );
-const headings: Record<Section, [string, string]> = {
-  overview: ["Overview", "Your clients, content and leads in one place"],
-  calendar: [
-    "Content calendar",
-    "Plan and schedule content across your clients",
-  ],
-  approvals: ["Approvals", "Review content before it goes live"],
-  leads: ["Leads & CRM", "Track prospects and keep follow-ups moving"],
-  automations: ["Automations", "Manage workflows and resolve failed runs"],
-  assets: ["Asset library", "Organize client images, videos and brand assets"],
-  reports: ["Reports", "Understand content performance and lead outcomes"],
-  settings: ["Settings", "Manage your workspace and client preferences"],
+const headings: Record<Section, string> = {
+  overview: "Overview",
+  calendar: "Content Calendar",
+  approvals: "Approvals",
+  leads: "Leads & CRM",
+  automations: "Automations",
+  assets: "Asset Library",
+  reports: "Reports",
+  settings: "Settings",
 };
 export function WorkspaceScreen({ section }: { section: Section }) {
-  const { data, clientId, session } = useWorkspace();
+  const { session } = useWorkspace();
   const reviewer = session?.role === "client_reviewer";
   const [editor, setEditor] = useState<{ post?: Post; date?: string } | null>(
     null,
@@ -55,7 +52,7 @@ export function WorkspaceScreen({ section }: { section: Section }) {
   if (reviewer && !["overview", "approvals", "assets"].includes(section))
     return (
       <div className="page">
-        <h1>Client access</h1>
+        <h1>Client Access</h1>
         <p>Your role provides content review and asset access.</p>
       </div>
     );
@@ -63,14 +60,13 @@ export function WorkspaceScreen({ section }: { section: Section }) {
     <div className={"page page-" + section}>
       <div className="page-heading">
         <div>
-          <h1>{headings[section][0]}</h1>
-          <p>{headings[section][1]}</p>
+          <h1>{headings[section]}</h1>
         </div>
         <div className="heading-actions">
           {!reviewer && (section === "overview" || section === "calendar") && (
             <button className="button primary" onClick={() => create()}>
               <Plus size={20} />
-              Create content
+              Create Content
             </button>
           )}
           {section === "leads" && (
@@ -79,7 +75,7 @@ export function WorkspaceScreen({ section }: { section: Section }) {
               onClick={() => setAddingLead(true)}
             >
               <Plus size={17} />
-              Add lead
+              Add Lead
             </button>
           )}
           {section === "automations" && (
@@ -88,14 +84,14 @@ export function WorkspaceScreen({ section }: { section: Section }) {
               onClick={() => setAddingAutomation(true)}
             >
               <Plus size={17} />
-              New automation
+              New Automation
             </button>
           )}
           {section === "assets" && !reviewer && (
-            <label className="button primary" htmlFor="asset-upload">
+            <button className="button primary" onClick={() => document.getElementById("asset-upload")?.click()}>
               <Upload size={20} />
-              Upload assets
-            </label>
+              Upload Assets
+            </button>
           )}
           {section === "reports" && (
             <button
@@ -103,20 +99,8 @@ export function WorkspaceScreen({ section }: { section: Section }) {
               onClick={() => document.getElementById("export-report")?.click()}
             >
               <ArrowDownToLine size={17} />
-              Export report
+              Export Report
             </button>
-          )}
-          {section === "approvals" && (
-            <span className="pending-label">
-              {
-                data.posts.filter(
-                  (p) =>
-                    p.status === "Awaiting approval" &&
-                    (clientId === "all" || p.clientId === clientId),
-                ).length
-              }{" "}
-              pending
-            </span>
           )}
         </div>
       </div>

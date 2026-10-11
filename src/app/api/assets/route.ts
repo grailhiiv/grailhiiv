@@ -2,6 +2,7 @@ import { z } from "zod";
 import { authenticated, apiError, checkOrigin } from "@/lib/api";
 import { maxAssetBytes, validateAsset } from "@/lib/file-validation";
 import type { Asset } from "@/lib/types";
+import { createThumbnail } from "@/lib/asset-thumbnail";
 export async function POST(request: Request) {
   try {
     checkOrigin(request);
@@ -36,32 +37,64 @@ export async function POST(request: Request) {
     const extension = validateAsset(bytes, file.type);
     const id = crypto.randomUUID();
     const storagePath = `${wid}/${clientId}/${id}.${extension}`;
-    const result = await db.storage
-      .from("grailhiiv-assets")
-      .upload(storagePath, bytes, { contentType: file.type, upsert: false });
-    if (result.error) throw new Error(result.error.message);
-    const asset: Asset = {
-      id,
-      clientId,
-      name: file.name.slice(0, 200),
-      type: file.type,
-      size: file.size,
-      storagePath,
-      url: `/api/assets/file?workspaceId=${wid}&id=${id}`,
-      status: "Draft",
-      tags: [],
-      uploaded: true,
-    };
-    const saved = await db.rpc("commit_records", {
+    const thumbnail = await createThumbnail(bytes, file.type);
+    const thumbnailPath = thumbnail
+      ? `${wid}/${clientId}/${id}-thumb.webp`
+      : undefined;
+    const reservation = await db.rpc("reserve_asset_upload", {
       wid,
-      changes: [{ kind: "assets", id, before: null, after: asset }],
-      prefs: null,
+      cid: clientId,
+      rid: id,
+      amount: file.size + (thumbnail?.length || 0),
+      extension,
     });
-    if (saved.error) {
-      await db.storage.from("grailhiiv-assets").remove([storagePath]);
-      throw new Error(saved.error.message);
+    if (reservation.error) throw new Error(reservation.error.message);
+    const paths = thumbnailPath ? [storagePath, thumbnailPath] : [storagePath];
+    try {
+      const result = await db.storage
+        .from("grailhiiv-assets")
+        .upload(storagePath, bytes, { contentType: file.type, upsert: false });
+      if (result.error) throw new Error(result.error.message);
+      if (thumbnail && thumbnailPath) {
+        const preview = await db.storage
+          .from("grailhiiv-assets")
+          .upload(thumbnailPath, thumbnail, {
+            contentType: "image/webp",
+            upsert: false,
+          });
+        if (preview.error) throw new Error(preview.error.message);
+      }
+      const asset: Asset = {
+        id,
+        clientId,
+        name: file.name.slice(0, 200),
+        type: file.type,
+        size: file.size,
+        storagePath,
+        url: `/api/assets/file?workspaceId=${wid}&id=${id}`,
+        status: "Draft",
+        tags: [],
+        uploaded: true,
+        ...(thumbnailPath
+          ? { thumbnailPath, thumbnailSize: thumbnail!.length }
+          : {}),
+      };
+      const saved = await db.rpc("commit_records", {
+        wid,
+        changes: [{ kind: "assets", id, before: null, after: asset }],
+        prefs: null,
+      });
+      if (saved.error) {
+        throw new Error(saved.error.message);
+      }
+      await db.rpc("release_asset_upload", { wid, rid: id });
+      return Response.json({ asset });
+    } catch (error) {
+      const cleanup = await db.storage.from("grailhiiv-assets").remove(paths);
+      if (!cleanup.error)
+        await db.rpc("release_asset_upload", { wid, rid: id });
+      throw error;
     }
-    return Response.json({ asset });
   } catch (e) {
     return apiError(e);
   }

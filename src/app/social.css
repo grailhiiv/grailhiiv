@@ -1,0 +1,15 @@
+.social-settings { max-width: 1000px; }
+.social-settings code { overflow-wrap: anywhere; }
+.social-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.social-heading { margin-top: 24px; }
+.social-settings .social-heading h3 { margin: 0 0 8px; font-size: 18px; line-height: 26px; }
+.social-heading p { margin: 0; }
+.social-connect { display: flex; align-items: end; flex-wrap: wrap; gap: 16px; max-width: 400px; margin: 20px 0 12px; }
+.social-connect .field { flex: 1; min-width: 180px; margin: 0; }
+.social-account,.social-job { display: flex; justify-content: space-between; gap: 20px; padding: 20px 0; border-bottom: 1px solid var(--border, #dde5e9); }
+.social-account { align-items: center; }
+.social-account > .button { align-self: center; min-width: 160px; min-height: 38px; height: auto; padding: 8px 14px; line-height: 20px; }
+.social-account p,.social-job p { margin: 8px 0; overflow-wrap: anywhere; }
+.social-actions { align-items: start; align-content: start; }
+.social-job > div:first-child { min-width: 0; }
+@media (max-width: 650px) { .social-account,.social-job { flex-direction: column; align-items: stretch; gap: 8px; } .social-account > .button { align-self: start; min-width: 0; } }

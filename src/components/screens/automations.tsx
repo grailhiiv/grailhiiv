@@ -8,7 +8,6 @@ import {
   Clock3,
   Unplug,
   Ellipsis,
-  Instagram,
   UsersRound,
   FileText,
   ChartNoAxesCombined,
@@ -16,9 +15,33 @@ import {
   CircleAlert,
 } from "lucide-react";
 import { useWorkspace } from "../workspace-provider";
-import { Badge, Field, Modal, Status } from "../ui";
+import { Badge, Status } from "../ui";
+import { SocialIcon } from "../social-icon";
+import { AutomationForm } from "./automation-form";
 import { clientMatch } from "@/lib/domain";
+import { CloudAutomations } from "./cloud-automations";
+function InstagramIcon({ size = 20 }: { size?: number }) {
+  return <SocialIcon name="Instagram" size={size} />;
+}
 export function AutomationsScreen({
+  adding,
+  closeAdd,
+}: {
+  adding: boolean;
+  closeAdd: () => void;
+}) {
+  const { cloud, session } = useWorkspace();
+  return cloud ? (
+    <CloudAutomations
+      key={session?.workspaceId}
+      adding={adding}
+      closeAdd={closeAdd}
+    />
+  ) : (
+    <DemoAutomationsScreen adding={adding} closeAdd={closeAdd} />
+  );
+}
+function DemoAutomationsScreen({
   adding,
   closeAdd,
 }: {
@@ -31,10 +54,11 @@ export function AutomationsScreen({
   const workflows = data.automations.filter(
     (a) =>
       (clientMatch(a.clientId, clientId) || a.clientId === "all") &&
-      a.name.toLowerCase().includes(query.toLowerCase()),
+      a.name.toLowerCase().includes(query.trim().toLowerCase()),
   );
   const selected = workflows.find((a) => a.id === selectedId) || workflows[0];
   const runs = workflows.flatMap((w) => w.runs);
+  const today = new Date().toDateString();
   function simulate() {
     if (!selected) return;
     const run = {
@@ -55,7 +79,7 @@ export function AutomationsScreen({
     toast("Demo run completed · no external actions");
   }
   const failed = selected?.runs[0]?.status === "Failed";
-  const icons = [UsersRound, FileText, ChartNoAxesCombined, Mail, Instagram];
+  const icons = [UsersRound, FileText, ChartNoAxesCombined, Mail, InstagramIcon];
   return (
     <>
       <div className="metric-grid three">
@@ -71,7 +95,15 @@ export function AutomationsScreen({
             <span>Successful today</span>
             <CircleCheck size={20} />
           </div>
-          <strong>{runs.filter((r) => r.status === "Success").length}</strong>
+          <strong>
+            {
+              runs.filter(
+                (r) =>
+                  r.status === "Success" &&
+                  new Date(r.date).toDateString() === today,
+              ).length
+            }
+          </strong>
         </div>
         <div className="metric-card">
           <div className="metric-top">
@@ -84,7 +116,25 @@ export function AutomationsScreen({
         </div>
       </div>
       <section className="panel">
-        <div className="table-wrap">
+        <div className="panel-heading">
+          <h2>Workflows</h2>
+          <input
+            aria-label="Search Automations"
+            type="search"
+            name="automation-search"
+            autoComplete="off"
+            placeholder="Search automations…"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
+        <p className="automation-scroll-note">Scroll horizontally to see all columns.</p>
+        <div
+          className="table-wrap"
+          tabIndex={0}
+          role="region"
+          aria-label="Demo Workflows"
+        >
           <table>
             <thead>
               <tr>
@@ -92,7 +142,7 @@ export function AutomationsScreen({
                 <th>Client</th>
                 <th>Trigger</th>
                 <th>Status</th>
-                <th>Last run</th>
+                <th>Last Run</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -141,11 +191,7 @@ export function AutomationsScreen({
                         <span />
                       </button>
                       <span className="automation-status">
-                        {a.runs[0]?.status === "Failed"
-                          ? "Needs attention"
-                          : a.enabled
-                            ? "Active"
-                            : "Disabled"}
+                        {!a.enabled ? "Disabled" : a.runs[0]?.status === "Failed" ? "Needs attention" : "Active"}
                       </span>
                     </td>
                     <td>
@@ -188,7 +234,7 @@ export function AutomationsScreen({
               <h2>
                 {selected.name}{" "}
                 <Badge tone={failed ? "red" : "green"}>
-                  {failed ? "Failed" : "Ready"}
+                  {failed ? "Failed" : selected.enabled ? "Ready" : "Disabled"}
                 </Badge>
               </h2>
               <p>
@@ -197,8 +243,8 @@ export function AutomationsScreen({
               </p>
               <h3>
                 {failed
-                  ? "Account connection expired"
-                  : "Workflow ready for a demo run"}
+                  ? "Account Connection Expired"
+                  : "Workflow Ready for a Demo Run"}
               </h3>
               <p>
                 {failed
@@ -214,16 +260,16 @@ export function AutomationsScreen({
                     )
                   }
                 >
-                  Reconnect account
+                  Reconnect Account
                 </button>
               )}
               <button
                 className="button"
                 onClick={simulate}
                 disabled={!selected.enabled}
-                aria-label="Run demo"
+                aria-label="Run Demo"
               >
-                {failed ? "Retry run" : "Run demo"}
+                {failed ? "Retry Run" : "Run Demo"}
               </button>
             </div>
             <div>
@@ -236,7 +282,7 @@ export function AutomationsScreen({
                 </span>
               </p>
               <section className="panel" style={{ padding: 16 }}>
-                <h3>Workflow steps</h3>
+                <h3>Workflow Steps</h3>
                 <div className="workflow-steps">
                   {[
                     "Content approved",
@@ -268,14 +314,14 @@ export function AutomationsScreen({
             </div>
           </div>
           <div className="panel-heading">
-            <h3>Run history</h3>
+            <h3>Run History</h3>
           </div>
           {selected.runs.length ? (
             <div className="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Date & time</th>
+                    <th>Date & Time</th>
                     <th>Status</th>
                     <th>Duration</th>
                     <th>Details</th>
@@ -306,7 +352,7 @@ export function AutomationsScreen({
           </p>
         </section>
       )}
-      <div className="integration-banner">
+      <div className="integration-banner automation-connection demo-connection">
         <Unplug size={18} />
         <div>
           <strong>Self-hosted n8n</strong>
@@ -315,82 +361,5 @@ export function AutomationsScreen({
       </div>
       {adding && <AutomationForm onClose={closeAdd} />}
     </>
-  );
-}
-function AutomationForm({ onClose }: { onClose: () => void }) {
-  const { data, clientId, update, toast, cloud } = useWorkspace();
-  const [name, setName] = useState("");
-  const [client, setClient] = useState(
-    cloud && clientId === "all" ? data.clients[0].id : clientId,
-  );
-  const [trigger, setTrigger] = useState("Content approved");
-  return (
-    <Modal title="New automation" onClose={onClose}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!name.trim()) return;
-          update((prev) => ({
-            ...prev,
-            automations: [
-              ...prev.automations,
-              {
-                id: crypto.randomUUID(),
-                name: name.trim(),
-                clientId: client,
-                trigger,
-                enabled: false,
-                runs: [],
-              },
-            ],
-          }));
-          toast("Local workflow created");
-          onClose();
-        }}
-      >
-        <Field label="Workflow name">
-          <input
-            required
-            maxLength={100}
-            placeholder="e.g. Monthly client check-in"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </Field>
-        <Field label="Client">
-          <select value={client} onChange={(e) => setClient(e.target.value)}>
-            {!cloud && <option value="all">All clients</option>}
-            {data.clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Trigger">
-          <select value={trigger} onChange={(e) => setTrigger(e.target.value)}>
-            {[
-              "Content approved",
-              "Form submission",
-              "Daily · 9 AM",
-              "Every Monday · 9 AM",
-              "Manual",
-            ].map((t) => (
-              <option key={t}>{t}</option>
-            ))}
-          </select>
-        </Field>
-        <p className="muted small-text">
-          Creates a local definition. It does not create or activate an n8n
-          workflow yet.
-        </p>
-        <div className="modal-footer">
-          <button className="button" type="button" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="button primary">Create workflow</button>
-        </div>
-      </form>
-    </Modal>
   );
 }

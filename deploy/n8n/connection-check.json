@@ -1,0 +1,76 @@
+{
+  "id": "grailhiivConnectionCheck",
+  "name": "GrailHiiv — Verify automation connection",
+  "active": false,
+  "nodes": [
+    {
+      "id": "grailhiivWebhook",
+      "name": "GrailHiiv webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "grailhiiv-connection-check",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "grailhiiv-connection-check",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "grailhiivWebhookAuth",
+          "name": "GrailHiiv webhook"
+        }
+      }
+    },
+    {
+      "id": "grailhiivComplete",
+      "name": "Report completion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.body.callbackUrl }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ \"Bearer \" + $json.body.callbackToken }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ status: \"Success\", detail: \"n8n connection verified. No external actions were performed.\", executionId: String($execution.id) }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      }
+    }
+  ],
+  "connections": {
+    "GrailHiiv webhook": {
+      "main": [
+        [
+          {
+            "node": "Report completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  },
+  "tags": []
+}

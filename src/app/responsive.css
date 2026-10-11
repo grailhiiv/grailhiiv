@@ -152,7 +152,7 @@ body {
   display: none;
 }
 .page-reports .metric-card {
-  min-height: 170px;
+  min-height: 112px;
 }
 .page-reports .metric-card > small {
   max-width: none;
@@ -198,15 +198,16 @@ body {
   max-width: 100%;
 }
 .calendar-grid {
-  grid-template-rows: 130px;
-  grid-auto-rows: 220px;
+  grid-template-rows: none;
+  grid-auto-rows: minmax(160px, auto);
 }
 .calendar-panel {
   overflow-x: auto;
 }
 .calendar-weekdays,
 .calendar-grid {
-  min-width: 1260px;
+  min-width: 0;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 .calendar-post strong,
 .calendar-client {
@@ -400,4 +401,171 @@ body {
   .asset-list .asset-card > .asset-preview {
     width: 80px;
   }
+}
+/* Shared rhythm and fixes for layouts that used fixed mockup measurements. */
+:root {
+  --muted: #59697a;
+}
+h1, h2, h3 { text-wrap: balance; }
+:is(.metric-card, td, .badge) { font-variant-numeric: tabular-nums; }
+.main-shell, main, .page, .panel { min-width: 0; }
+.page-heading, .is-overview .page-heading, .page-approvals .page-heading {
+  align-items: center;
+  margin-bottom: 24px;
+}
+.heading-actions { align-self: center; }
+.page-heading:has(.heading-actions:empty) .heading-actions { display: none; }
+.panel-heading { padding: 16px 20px; }
+.panel-heading h2 { display: flex; align-items: center; gap: 8px; }
+.app-footer { color: var(--muted); padding-top: 8px; }
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  padding: 12px 16px;
+  color: white;
+  background: var(--teal);
+  border-radius: 6px;
+  transform: translateY(-150%);
+}
+.skip-link:focus { transform: translateY(0); }
+.modal { overscroll-behavior: contain; }
+.modal-heading h2 { overflow-wrap: anywhere; }
+.modal :is(input, select, textarea) { font-size: 16px; }
+.modal :is(.lead-detail, .asset-detail) {
+  position: static;
+  width: auto;
+  min-width: 0;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  overflow: visible;
+  margin-top: 0;
+  min-height: 0;
+}
+.modal .lead-detail .detail-top .icon-button { display: none; }
+.modal .asset-detail > .asset-preview { height: 240px; object-fit: contain; }
+:is(.lead-detail, .asset-detail) :is(p, dd, h2, .contact-line, .tags) { overflow-wrap: anywhere; }
+.page-leads .page-heading { margin-right: 0; }
+.page-leads .toolbar { max-width: none; }
+.crm-layout.with-detail { grid-template-columns: minmax(0, 1fr) 300px; }
+.crm-layout .lead-detail {
+  position: relative;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  margin-top: 0;
+  min-height: 0;
+  width: auto;
+  min-width: 0;
+  box-shadow: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.kanban { overflow-x: auto; grid-template-columns: repeat(4, minmax(220px, 1fr)); }
+.kanban-column { min-height: 0; padding: 12px; }
+.lead-card { padding: 14px; }
+.lead-card-title strong { overflow-wrap: anywhere; }
+.lead-card .lead-task > div { white-space: normal; overflow-wrap: anywhere; }
+.calendar-cell { overflow: visible; padding: 8px; }
+.calendar-post-top { display: block; }
+.calendar-post-top > .asset-preview { display: none; }
+.calendar-post strong { white-space: normal; display: block; overflow-wrap: anywhere; }
+.calendar-client { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.calendar-post .platform { margin-bottom: 4px; }
+.calendar-post .platform > span { display: inline; }
+.calendar-scroll-note { display: none; }
+.asset-layout { gap: 16px; align-items: start; }
+.asset-layout:not(:has(> .asset-detail)) { grid-template-columns: 180px minmax(0, 1fr); }
+.asset-folders { min-height: 0; }
+.asset-card > .asset-preview { object-fit: cover; }
+.asset-detail > .asset-preview { object-fit: contain; background: #f5f7f8; }
+.asset-card strong { overflow-wrap: anywhere; white-space: normal; }
+.social-icon { display: block; flex-shrink: 0; fill: currentColor; stroke: none; }
+.image-platform {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  left: 12px;
+  bottom: 12px;
+  padding: 6px;
+  background: white;
+  border: 1px solid #e3e7ec;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px #1527311a;
+}
+.image-platform .platform > .social-icon { width: 20px; height: 20px; }
+.asset-toolbar { flex-wrap: wrap; }
+.asset-toolbar .search-box { flex: 1 1 180px; }
+.asset-detail dl { grid-template-columns: 90px minmax(0, 1fr); }
+.asset-list .asset-card { display: grid; grid-template-columns: 100px minmax(0, 1fr); }
+.asset-list .asset-card > .asset-preview { width: 100px; height: 120px; }
+.settings-tabs { gap: 24px; padding: 0 4px; }
+.settings-tabs > button { min-height: 48px; }
+.settings-form { padding: 24px; }
+.client-list { min-height: 0; }
+.settings-form > h2 { margin-bottom: 20px; display: flex; gap: 8px; align-items: center; }
+.settings-form > p { margin-top: 16px; }
+.settings-client-heading { align-items: center; }
+.settings-form .preference-row { justify-content: space-between; }
+.settings-form .preference-row .toggle { order: 0; flex-shrink: 0; }
+.settings-form .preference-row > div { min-width: 0; }
+.settings-form .preference-row p { display: block; }
+.logo-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.report-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.report-source-note { color: var(--muted); font-size: 14px; margin: -4px 0 20px; }
+.page-reports .metric-card { padding: 20px; }
+.report-content { min-width: 220px; }
+.report-content .asset-preview { flex-shrink: 0; }
+.report-side .report-insight p { padding: 0 16px 20px; }
+.page-automations .metric-grid.three .metric-top > svg {
+  display: block;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+}
+@media (max-width: 1600px) {
+  .calendar-layout { grid-template-columns: minmax(0, 1fr); }
+  .ideas-panel { min-height: 0; }
+  .ideas-panel .idea-card { display: inline-flex; width: min(100%, 300px); margin: 0 12px 16px 16px; vertical-align: top; }
+}
+@media (max-width: 1200px) {
+  .crm-layout.with-detail { grid-template-columns: minmax(0, 1fr); }
+  .asset-layout, .asset-layout:not(:has(> .asset-detail)) { grid-template-columns: 160px minmax(0, 1fr); }
+}
+@media (max-width: 1024px) {
+  .page-heading, .is-overview .page-heading, .page-approvals .page-heading { align-items: flex-start; }
+}
+@media (max-width: 760px) {
+  .calendar-weekdays, .calendar-grid { min-width: 980px; }
+  .calendar-scroll-note { display: block; padding: 12px; color: var(--muted); font-size: 14px; position: sticky; left: 0; width: 100%; }
+  .month-controls { flex-wrap: wrap; }
+  .month-controls h2 { font-size: 18px; }
+  .heading-actions { align-self: flex-start; }
+  .asset-layout, .asset-layout:not(:has(> .asset-detail)) { grid-template-columns: minmax(0, 1fr); }
+  .asset-folders { display: flex; overflow-x: auto; gap: 8px; padding: 8px; }
+  .asset-folders > button { width: auto; flex-shrink: 0; margin: 0; }
+  .asset-folders .storage-note { display: none; }
+  .asset-main { padding: 12px; }
+  .asset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .asset-card > .asset-preview { height: 120px; }
+  .asset-card > div:not(.asset-preview) { padding: 10px; }
+  .asset-card .small-text { display: none; }
+  .asset-list { grid-template-columns: minmax(0, 1fr); }
+  .settings-form { padding: 20px 16px; }
+  .settings-client-heading { gap: 12px; }
+  .settings-client-heading > .client-mark { width: 64px; height: 64px; flex-shrink: 0; }
+  .report-filters { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .metric-grid, .page-reports .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page-reports .metric-card { padding: 16px; min-height: 128px; }
+  .page-reports .metric-card > strong { font-size: 26px; }
+  .page-automations .metric-grid.three { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

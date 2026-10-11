@@ -6,6 +6,12 @@ import "./mockup.css";
 import "./reference-responsive.css";
 import "./responsive.css";
 import "./auth.css";
+import "./automations.css";
+import "./account-menu.css";
+import "./interactions.css";
+import "./agent-plan.css";
+import "./social.css";
+import "./settings.css";
 import { hasSupabase } from "@/lib/supabase/config";
 export const metadata: Metadata = {
   title: "GrailHiiv",
@@ -20,6 +26,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <WorkspaceProvider
+          demoLogoutUrl={new URL(
+            "/login",
+            process.env.GRAILHIIV_SITE_URL || "http://127.0.0.1:3100",
+          ).toString()}
           mode={
             hasSupabase()
               ? "cloud"

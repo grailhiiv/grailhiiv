@@ -6,11 +6,11 @@ test("all pages render without runtime errors and fit desktop", async ({
   page.on("pageerror", (e) => errors.push(e.message));
   for (const [route, title] of [
     ["/", "Overview"],
-    ["/calendar", "Content calendar"],
+    ["/calendar", "Content Calendar"],
     ["/approvals", "Approvals"],
     ["/leads", "Leads & CRM"],
     ["/automations", "Automations"],
-    ["/assets", "Asset library"],
+    ["/assets", "Asset Library"],
     ["/reports", "Reports"],
     ["/settings", "Settings"],
   ]) {
@@ -31,25 +31,25 @@ test("create, submit, approve and persist a post across reload", async ({
 }) => {
   await page.goto("/calendar");
   await page
-    .getByRole("button", { name: "Create content", exact: true })
+    .getByRole("button", { name: "Create Content", exact: true })
     .click();
   const modal = page.getByRole("dialog");
-  await modal.getByLabel("Post title").fill("October launch test");
+  await modal.getByLabel("Post Title").fill("October launch test");
   await modal.getByLabel("Caption").fill("A real editable draft.");
-  await modal.getByLabel("Publishing date (optional)").fill("2026-10-18");
+  await modal.getByLabel("Publishing Date (Optional)").fill("2026-10-18");
   await modal.getByLabel("Time", { exact: true }).fill("10:30");
-  await modal.getByRole("button", { name: "Save draft" }).click();
+  await modal.getByRole("button", { name: "Save Draft" }).click();
   await page
     .getByRole("button")
     .filter({ hasText: "October launch test" })
     .click();
-  await page.getByRole("button", { name: "Submit for approval" }).click();
+  await page.getByRole("button", { name: "Submit for Approval" }).click();
   await page.goto("/approvals");
   await page
     .getByRole("button")
     .filter({ hasText: "October launch test" })
     .click();
-  await page.getByRole("button", { name: "Approve & schedule" }).click();
+  await page.getByRole("button", { name: "Approve & Schedule" }).click();
   await page.getByRole("button", { name: /^Approved/ }).click();
   await expect(page.locator(".approval-queue")).toContainText(
     "October launch test",
@@ -62,13 +62,13 @@ test("create, submit, approve and persist a post across reload", async ({
 });
 test("client filters apply to leads and content", async ({ page }) => {
   await page.goto("/leads");
-  await page.getByLabel("Selected client").selectOption("bloom");
+  await page.getByLabel("Selected Client").selectOption("bloom");
   await expect(page.locator(".lead-card")).toHaveCount(5);
   await expect(page.locator(".lead-card")).not.toContainText([
     "Northside Dental",
   ]);
   await page.goto("/calendar");
-  await expect(page.getByLabel("Selected client")).toHaveValue("bloom");
+  await expect(page.getByLabel("Selected Client")).toHaveValue("bloom");
   await expect(page.locator(".calendar-client")).not.toContainText([
     "Coastal Studio",
   ]);
@@ -76,17 +76,17 @@ test("client filters apply to leads and content", async ({ page }) => {
 test("lead stage, note and follow-up updates persist", async ({ page }) => {
   await page.goto("/leads");
   await page.getByRole("button").filter({ hasText: "Emily Carter" }).click();
-  await page.getByLabel("Lead stage").selectOption("Contacted");
-  await page.getByLabel("Lead note").fill("Asked for a proposal.");
-  await page.getByRole("button", { name: "Save note" }).click();
-  await page.getByRole("button", { name: "Edit follow-up" }).click();
+  await page.getByLabel("Lead Stage").selectOption("Contacted");
+  await page.getByLabel("Lead Note").fill("Asked for a proposal.");
+  await page.getByRole("button", { name: "Save Note" }).click();
+  await page.getByRole("button", { name: "Edit Follow-Up" }).click();
   await page
     .getByLabel("Task", { exact: true })
     .fill("Send proposal on Friday");
-  await page.getByRole("button", { name: "Save follow-up" }).click();
+  await page.getByRole("button", { name: "Save Follow-Up" }).click();
   await page.reload();
   await page.getByRole("button").filter({ hasText: "Emily Carter" }).click();
-  await expect(page.getByLabel("Lead stage")).toHaveValue("Contacted");
+  await expect(page.getByLabel("Lead Stage")).toHaveValue("Contacted");
   await expect(page.locator(".lead-detail")).toContainText(
     "Asked for a proposal.",
   );
@@ -96,9 +96,9 @@ test("lead stage, note and follow-up updates persist", async ({ page }) => {
 });
 test("feedback requests return content for revision", async ({ page }) => {
   await page.goto("/approvals");
-  await page.getByLabel("Add feedback").fill("Please shorten the caption.");
-  await page.getByRole("button", { name: "Request changes" }).click();
-  await page.getByRole("button", { name: /^Changes requested/ }).click();
+  await page.getByLabel("Add Feedback").fill("Please shorten the caption.");
+  await page.getByRole("button", { name: "Request Changes" }).click();
+  await page.getByRole("button", { name: /^Changes Requested/ }).click();
   await expect(page.locator(".approval-detail")).toContainText(
     "Please shorten the caption.",
   );
@@ -113,7 +113,7 @@ test("asset uploads survive reload using IndexedDB", async ({ page }) => {
       "base64",
     ),
   });
-  await page.getByRole("button", { name: "Save assets" }).click();
+  await page.getByRole("button", { name: "Save Assets" }).click();
   await expect(page.locator(".asset-grid")).toContainText("test-asset.png");
   await page.reload();
   await expect(page.locator(".asset-grid")).toContainText("test-asset.png");
@@ -136,14 +136,14 @@ test("automation toggles and simulations are clearly local", async ({
   await page
     .getByRole("button", { name: "Lead capture to CRM", exact: true })
     .click();
-  await page.getByRole("button", { name: "Run demo" }).click();
+  await page.getByRole("button", { name: "Run Demo" }).click();
   await expect(page.locator(".automation-detail")).toContainText(
     "No external services were called.",
   );
   await page
     .getByRole("switch", { name: "Enable Lead capture to CRM" })
     .click();
-  await expect(page.getByRole("button", { name: "Run demo" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Run Demo" })).toBeDisabled();
   await page.reload();
   await expect(
     page.getByRole("switch", { name: "Enable Lead capture to CRM" }),
@@ -151,35 +151,35 @@ test("automation toggles and simulations are clearly local", async ({
 });
 test("reports export actual filtered demo records", async ({ page }) => {
   await page.goto("/reports");
-  await page.getByLabel("Selected client").selectOption("coastal");
+  await page.getByLabel("Selected Client").selectOption("coastal");
   const downloadPromise = page.waitForEvent("download");
   await page
-    .getByRole("button", { name: "Export report", exact: true })
+    .getByRole("button", { name: "Export Report", exact: true })
     .click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toBe("grailhiiv-report-2026-09.csv");
-  await page.getByLabel("Reporting period").fill("2026-10");
+  await page.getByLabel("Reporting Period").fill("2026-10");
   await expect(
-    page.getByRole("heading", { name: "No published content in this period" }),
+    page.getByRole("heading", { name: "No Published Content in This Period" }),
   ).toBeVisible();
 });
 test("client preferences save and a new client can be created", async ({
   page,
 }) => {
   await page.goto("/settings");
-  await page.getByLabel("Brand voice").fill("Warm and concise.");
-  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await page.getByLabel("Brand Voice").fill("Warm and concise.");
+  await page.getByRole("button", { name: "Save Changes", exact: true }).click();
   await page.reload();
-  await expect(page.getByLabel("Brand voice")).toHaveValue("Warm and concise.");
-  await page.getByRole("button", { name: "Add client", exact: true }).click();
+  await expect(page.getByLabel("Brand Voice")).toHaveValue("Warm and concise.");
+  await page.getByRole("button", { name: "Add Client", exact: true }).click();
   const modal = page.getByRole("dialog");
-  await modal.getByLabel("Client name").fill("Test Studio");
-  await modal.getByRole("button", { name: "Add client" }).click();
+  await modal.getByLabel("Client Name").fill("Test Studio");
+  await modal.getByRole("button", { name: "Add Client" }).click();
   await page
-    .getByLabel("Selected client")
+    .getByLabel("Selected Client")
     .selectOption({ label: "Test Studio" });
   await page.goto("/");
-  await expect(page.locator(".metric-card").first()).toContainText("01");
+  await expect(page.locator(".metric-card").first().locator(":scope > strong")).toHaveText("1");
 });
 test("mobile navigation and pages have no body overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -201,15 +201,15 @@ test("mobile navigation and pages have no body overflow", async ({ page }) => {
       )
       .toBe(true);
   }
-  await page.getByRole("button", { name: "Open navigation" }).click();
+  await page.getByRole("button", { name: "Open Navigation" }).click();
   await expect(
-    page.getByRole("navigation", { name: "Main navigation" }),
+    page.getByRole("navigation", { name: "Main Navigation" }),
   ).toBeVisible();
   await page
-    .getByRole("link", { name: "Content calendar", exact: true })
+    .getByRole("link", { name: "Content Calendar", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Content calendar", level: 1 }),
+    page.getByRole("heading", { name: "Content Calendar", level: 1 }),
   ).toBeVisible();
 });
 test("reference typography, image sources and desktop column sizes are applied", async ({
@@ -246,6 +246,7 @@ test("reference typography, image sources and desktop column sizes are applied",
   await expect(
     page.locator(".asset-card").first().locator("img"),
   ).toHaveAttribute("src", "/media/mockup/skincare.png");
+  await page.locator(".asset-card").filter({ hasText: "coastal-coffee.jpg" }).click();
   await expect(page.locator(".asset-detail>img")).toHaveAttribute(
     "src",
     "/media/mockup/coffee-detail.png",
@@ -267,7 +268,7 @@ test("cleared client logos stay cleared after saving and reloading", async ({
 }) => {
   await page.goto("/settings");
   await page.getByRole("button", { name: "Remove", exact: true }).click();
-  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await page.getByRole("button", { name: "Save Changes", exact: true }).click();
   await page.reload();
   await expect(
     page.locator(".settings-client-heading .client-mark img"),

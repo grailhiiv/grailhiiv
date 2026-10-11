@@ -1,8 +1,11 @@
 node_modules/
 .next/
 .next-demo/
+.next-agent/
 .env*
 !.env.example
 playwright-report/
 test-results/
 *.tsbuildinfo
+supabase/.temp/
+backups/

@@ -4,7 +4,7 @@ A client social-media workspace with Supabase authentication, client permissions
 
 ## Supabase setup
 
-Copy `.env.example` to `.env.local` (or `.env`) and set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `GRAILHIIV_SITE_URL`. The service-role key is server-only and is used for invitation emails. Normal reads and writes use the signed-in user's token, so RLS remains enforced. Environment files are ignored by Git.
+Copy `.env.example` to `.env` and set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and `GRAILHIIV_SITE_URL`. The app, npm workers and Docker Compose share this single configuration file. Run `npm.cmd run setup:selfhost` to fill missing deployment secrets or consolidate legacy environment files; existing credentials are preserved and conflicting values stop the merge. Docker supplies its internal service addresses separately. The service-role key is server-only and is used for invitation emails. Normal reads and writes use the signed-in user's token, so RLS remains enforced. `.env` is ignored by Git; `.env.example` contains no actual credentials.
 
 For a new project, apply the SQL files in `supabase/migrations` in filename order in your Supabase project's SQL Editor, or use Supabase CLI migrations. These create eight public tables, narrow mutation functions, read policies, the private `grailhiiv-assets` bucket and an atomic empty-workspace import. The migrations are one-time installs, not idempotent reset scripts. Never rerun installation migrations against an installed database.
 
@@ -36,7 +36,7 @@ Owners assign client access in Settings → Team & permissions. Invitations expi
 
 Clients are stored in `clients`; content, CRM leads, follow-up tasks, asset metadata and workflow definitions are stored in client-scoped `records`. Follow-up tasks mirror the lead form's task and due-date fields. `approvals` stores the actor, record revision and approved content snapshot; `activity_log` records database-verified changes. Payloads retain the existing UI schema while indexed workspace/client/kind columns enforce access. Direct table writes are denied to application roles; authenticated RPCs validate access and perform atomic commits.
 
-Saves check each record's previous payload to reject stale edits from other devices. Shared screens refresh on focus and every 15 seconds while idle. Saving and errors remain visible; a failed save blocks further editing until Refresh restores shared records. Edits to scheduled content return to Draft and need approval again. Scheduling saves approved records; publishing is still unconnected.
+Saves check each record's previous payload to reject stale edits from other devices. Shared screens refresh on focus and every 15 seconds while idle. Saving and errors remain visible; a failed save blocks further editing until Refresh restores shared records. Edits to scheduled content return to Draft and need approval again. Scheduling saves approved records. Enabled Facebook/Instagram destinations can publish them through the approval-aware social worker; delivery receipts update the calendar.
 
 Assets upload to a private Supabase bucket with workspace/client/object paths. The app accepts PNG, JPEG, WebP, GIF, MP4 and PDF up to 10 MB per file, checks MIME signatures and disallows SVG. RLS restricts object reads to assigned clients with asset metadata; reviewers cannot upload. The download endpoint verifies membership and returns a 60-second signed URL. A signed link remains usable until expiry even after access is revoked; authenticated requests check current access. Storage quotas/billing are governed by your Supabase plan. This milestone does not add malware scanning, thumbnail processing or off-server backups.
 
@@ -58,7 +58,7 @@ Open http://127.0.0.1:3100. For an optimized build, run `npm.cmd run build`, the
 - Client switching across content, leads, assets, reports, and workflows.
 - Create/edit drafts; assign assets and publishing dates; submit for review; add feedback; request changes; approve into the local schedule.
 - Lead creation, pipeline stages (including drag/drop), notes, and follow-up tasks.
-- Local workflow definitions, enable/disable controls, and explicitly simulated runs.
+- Demo workflow definitions and simulations; authenticated workspaces can connect administrator-configured n8n workflows, queue manual runs and view durable execution history.
 - Browser asset uploads using IndexedDB, client assignment, approval, downloads, and content reuse. Demo upload limit: 10 MB per file.
 - Filtered sample performance reports and CSV export.
 - Client creation, brand voice/audience preferences, notification preference, and JSON workspace export.
@@ -68,15 +68,21 @@ Open http://127.0.0.1:3100. For an optimized build, run `npm.cmd run build`, the
 
 With Supabase configured, the application requires sign-in and loads only authorized PostgreSQL records; it does not load browser demo records automatically. Without Supabase, development uses the original local sample workspace. Production requires an explicit `GRAILHIIV_DEMO_MODE=true` to expose sample mode; otherwise a setup page appears. Sample records still persist in localStorage and sample uploads in IndexedDB and are independent of shared data.
 
-The AI content-plan button creates editable templates; it does not call an AI model. Scheduling does not publish to social accounts. Automation runs do not call n8n or a CRM. Reports use illustrative seeded metrics, not live analytics. There is no scheduler or background worker process yet.
+Authenticated workspaces can generate content plans through the LangChain/LangGraph worker, with an administrator model catalog, persistent PostgreSQL checkpoints and explicit proposal acceptance before draft creation. See [AI agent setup](deploy/AI-AGENTS.md). Sample mode retains labeled templates. Facebook/Instagram publishing is available through configured Meta connections; see [social publishing setup](deploy/SOCIAL-PUBLISHING.md). Demo automation runs remain simulations. Authenticated workspaces can use the self-hosted n8n bridge when configured: a separate worker dispatches queued manual runs and authenticated callbacks record results. Internal triggers are available; external CRM handlers, other social platforms and live analytics remain unconnected. Reports use illustrative seeded metrics.
+
+## Self-hosted automations
+
+Internal operations are available in **Settings → AI Preferences**: AI reasoning and usage limits, worker/backup status, upload quotas and opt-in event/scheduled rules. Draft proposals support edits, dates/assets and single-caption regeneration. New image uploads receive private thumbnails. Local backups are encrypted and verified with isolated database restores. See [internal operations](deploy/INTERNAL-OPERATIONS.md) for defaults, backup scheduling and recovery boundaries.
+
+See [the self-hosting guide](deploy/SELF-HOSTING.md) for the Compose stack, one-time database migration, secret generation, n8n administrator setup and the importable connection-check workflow. Owners manage workflow connections in GrailHiiv; team members run enabled workflows for assigned clients. The n8n editor remains administrator-only. No external messages or publishing actions are performed by the starter workflow.
 
 The local server binds to `127.0.0.1`. This unauthenticated demo should not be exposed as a production client portal.
 
 ## Next integration phase
 
 1. Lead capture through n8n with validation, duplicate protection, persistent history and follow-up tasks.
-2. LangChain/LangGraph worker, persistent checkpoints, model configuration, and approval-aware tools.
-3. Official social connections, publishing receipts, scheduling workers and analytics synchronization.
+2. Extend the implemented draft agent with additional tools after external integrations and their approval checks are ready.
+3. Extend Facebook/Instagram publishing to video, additional social platforms and analytics synchronization.
 4. Supabase storage backups, operational quotas and thumbnail processing; Hetzner migration if needed later.
 
 Keep LangGraph in charge of agent state and n8n in charge of external workflow execution. The backend must validate workspace membership and approved post versions before any publishing action.

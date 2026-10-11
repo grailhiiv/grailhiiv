@@ -1,0 +1,112 @@
+.account-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.account-saving {
+  color: #596579;
+  font-size: 14px;
+}
+.account-menu {
+  position: relative;
+  min-width: 0;
+}
+.account-menu > summary {
+  cursor: pointer;
+  list-style: none;
+  min-height: 44px;
+}
+.account-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.account-menu > summary > span {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-menu > summary:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+.account-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  width: 196px;
+  padding: 6px;
+  border: 1px solid #e2e5ea;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 8px 24px rgb(30 52 74 / 10%);
+}
+.account-menu > summary > .account-initial {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: #e2eff0;
+  color: var(--teal);
+  font-weight: 650;
+}
+.account-dropdown a,
+.account-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #1e344a;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.account-dropdown a:focus-visible,
+.account-dropdown button:not(:disabled):focus-visible {
+  background: #f5f6f8;
+}
+.account-dropdown button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.workspace-selector {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 12px;
+  padding: 8px;
+  border: 1px solid #e2e5ea;
+  border-radius: 6px;
+  background: white;
+}
+.empty-account-header {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.empty-account-header .workspace-selector {
+  max-width: 180px;
+  margin: 0;
+}
+.auth-page:has(.empty-account-header) {
+  position: relative;
+  padding-top: 88px;
+}
+@media (max-width: 600px) {
+  .account-menu > summary > span {
+    max-width: 150px;
+  }
+  .account-saving {
+    display: none;
+  }
+}
